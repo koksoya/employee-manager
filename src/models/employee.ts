@@ -1,13 +1,13 @@
-export interface Employee {
+export interface IEmployee {
     id: number;
     firstName: string;
     lastName: string;
     email: string;
     phoneNumber: string;
-    addresses: [Address];
+    addresses: [IAddress];
   }
 
-  interface Address {
+ export interface IAddress {
     streetName: string;
     postalCode: string;
     apartmentNumber: number;
