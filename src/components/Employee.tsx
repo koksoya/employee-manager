@@ -84,14 +84,14 @@ const Employee: React.FC<Props> = ({
         <>
           <TableCell align="center">
             <TextField
-              name="firstname"
+              name="firstName"
               value={updatedEmployee.firstName}
               onChange={handleInputChange}
             />
           </TableCell>
           <TableCell align="center">
             <TextField
-              name="lastname"
+              name="lastName"
               value={updatedEmployee.lastName}
               onChange={handleInputChange}
             />
