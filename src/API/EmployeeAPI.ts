@@ -12,8 +12,8 @@ export const EmployeeAPI = {
     const response = await axios.get<IEmployee>(`${BASE_URL}/employee/${id}`);
     return response.data;
   },
-  createEmployee: async (): Promise<IEmployee> => {
-    const response = await axios.post<IEmployee>(`${BASE_URL}/employee`);
+  createEmployee: async (employee: IEmployee): Promise<IEmployee> => {
+    const response = await axios.post<IEmployee>(`${BASE_URL}/employee`,employee);
     return response.data;
   },
   updateEmployee: async (employee: IEmployee): Promise<void> => {
