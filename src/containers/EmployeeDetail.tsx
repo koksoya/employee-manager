@@ -51,9 +51,10 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
 
   const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+    const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
     setAddress((prevAddress) => ({
       ...prevAddress,
-      [name]: value,
+      [name]: parsedValue,
     }));
     setEmployee((prevEmployee) => ({
       ...prevEmployee,
