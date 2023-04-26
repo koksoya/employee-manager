@@ -32,7 +32,7 @@ const Employee: React.FC<Props> = ({ employee, onSelectEmployee }) => {
           className={classes.button}
           variant="outlined"
           color="primary"
-          onClick={() => onSelectEmployee(employee.id)}
+          onClick={() => onSelectEmployee(employee.id!)}
         >
           Details
         </Button>

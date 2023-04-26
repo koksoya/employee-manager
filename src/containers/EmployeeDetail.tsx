@@ -26,14 +26,16 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface IEmployeeDetailsProps {
   employee: IEmployee;
-  onUnselectEmployee: (id: number) => void;
+  onUnselectEmployee: () => void;
   onUpdateEmployee: (employee: IEmployee) => void;
+  onDeleteEmployee: (id: number) => void;
 }
 
 const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
   employee,
   onUnselectEmployee,
   onUpdateEmployee,
+  onDeleteEmployee,
 }) => {
   const classes = useStyles();
   const [employeeProp, setEmployee] = useState<IEmployee>(employee);
@@ -186,9 +188,17 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
         <Button
           className={classes.button}
           variant="outlined"
-          onClick={() => onUnselectEmployee(employee.id)}
+          onClick={onUnselectEmployee}
         >
           Back
+        </Button>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          color="secondary"
+          onClick={() => onDeleteEmployee(employeeProp.id!)}
+        >
+          Delete
         </Button>
       </form>
     </Container>

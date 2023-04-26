@@ -1,117 +1,211 @@
-import React from 'react';
-import { Formik, Form, Field } from 'formik';
-import * as Yup from 'yup';
-import { makeStyles } from '@material-ui/core/styles';
-import { TextField, Button } from '@material-ui/core';
-import { IEmployee, IAddress } from '../models/employee';
+import React, { useState } from "react";
+import {
+  TextField,
+  Button,
+  makeStyles,
+  createStyles,
+  Theme,
+  Container,
+  Typography,
+  Grid,
+} from "@material-ui/core";
+import { IAddress, IEmployee } from "../models/employee";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    maxWidth: '500px',
-    width: '100%',
-  },
-  field: {
-    margin: theme.spacing(1),
-    width: '100%',
-  },
-  button: {
-    margin: theme.spacing(1),
-  },
-}));
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      marginTop: theme.spacing(4),
+    },
+    form: {
+      width: "100%",
+      marginTop: theme.spacing(3),
+    },
+    button: {
+      margin: theme.spacing(3, 1, 2),
+    },
+  })
+);
 
 interface IProps {
-  employee: IEmployee;
-  onSubmit: (values: IEmployee) => void;
+  onCreateEmployee: (employee: IEmployee) => void;
+  onCancel: () => void;
 }
 
-const validationSchema = Yup.object().shape({
-  firstName: Yup.string()
-    .max(50, 'Must be 50 characters or less')
-    .required('Required'),
-  lastName: Yup.string()
-    .max(50, 'Must be 50 characters or less')
-    .required('Required'),
-  email: Yup.string().email('Invalid email address').required('Required'),
-  phoneNumber: Yup.string().required('Required'),
-});
+const initialValues: IEmployee = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phoneNumber: "",
+  addresses: [
+    {
+      streetName: "",
+      postalCode: "",
+      apartmentNumber: 0,
+      state: "",
+      country: "",
+    },
+  ],
+};
 
-const EmployeeForm: React.FC<IProps> = ({ employee, onSubmit }) => {
+const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
   const classes = useStyles();
+  const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
+  const [address, setAddress] = useState<IAddress>(employee.addresses[0]);
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setEmployee((prevEmployee) => ({
+      ...prevEmployee,
+      [name]: value,
+    }));
+  };
+
+  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
+
+    setAddress((prevAddress) => ({
+      ...prevAddress,
+      [name]: parsedValue,
+    }));
+    setEmployee((prevEmployee) => ({
+      ...prevEmployee,
+      addresses: [address],
+    }));
+  };
   return (
-    <div className={classes.root}>
-      <Formik
-        initialValues={{
-          id: employee.id,
-          firstName: employee.firstName,
-          lastName: employee.lastName,
-          email: employee.email,
-          phoneNumber: employee.phoneNumber,
-          addresses: employee.addresses,
-        }}
-        validationSchema={validationSchema}
-        onSubmit={(values) => {
-          onSubmit(values);
-        }}
-      >
-        {({ errors, touched }) => (
-          <Form className={classes.form}>
-            <Field
-              name="firstName"
-              as={TextField}
+    <Container component="main" maxWidth="md" className={classes.root}>
+      <Typography component="h1" variant="h5">
+        Add New Employee
+      </Typography>
+      <form className={classes.form} noValidate>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="firstname"
               label="First Name"
-              variant="outlined"
-              className={classes.field}
-              error={touched.firstName && Boolean(errors.firstName)}
-              helperText={touched.firstName && errors.firstName}
+              name="firstName"
+              value={employee.firstName}
+              onChange={handleInputChange}
             />
-            <Field
-              name="lastName"
-              as={TextField}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="lastname"
               label="Last Name"
-              variant="outlined"
-              className={classes.field}
-              error={touched.lastName && Boolean(errors.lastName)}
-              helperText={touched.lastName && errors.lastName}
+              name="lastName"
+              value={employee.lastName}
+              onChange={handleInputChange}
             />
-            <Field
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
               name="email"
-              as={TextField}
-              label="Email"
-              variant="outlined"
-              className={classes.field}
-              error={touched.email && Boolean(errors.email)}
-              helperText={touched.email && errors.email}
+              value={employee.email}
+              onChange={handleInputChange}
             />
-            <Field
-              name="phoneNumber"
-              as={TextField}
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="phone"
               label="Phone Number"
-              variant="outlined"
-              className={classes.field}
-              error={touched.phoneNumber && Boolean(errors.phoneNumber)}
-              helperText={touched.phoneNumber && errors.phoneNumber}
+              name="phoneNumber"
+              value={employee.phoneNumber}
+              onChange={handleInputChange}
             />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              className={classes.button}
-            >
-              Submit
-            </Button>
-          </Form>
-        )}
-      </Formik>
-    </div>
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="apartmentNumber"
+              label="Number"
+              name="apartmentNumber"
+              value={address.apartmentNumber}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="street"
+              label="Street"
+              name="streetName"
+              value={address.streetName}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="postalCode"
+              label="Postal Code"
+              name="postalCode"
+              value={address.postalCode}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="state"
+              label="State"
+              name="state"
+              value={address.state}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="country"
+              label="Country"
+              name="country"
+              value={address.country}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+        </Grid>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          color="primary"
+          onClick={() => onCreateEmployee(employee)}
+        >
+          Save
+        </Button>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+      </form>
+    </Container>
   );
 };
 

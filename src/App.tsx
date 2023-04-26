@@ -5,6 +5,7 @@ import { IEmployee } from "./models/employee";
 import { EmployeeAPI } from "./API/EmployeeAPI";
 import EmployeeDetail from "./containers/EmployeeDetail";
 import NavBar from "./components/NavBar";
+import EmployeeForm from "./containers/EmployeeForm";
 
 function App() {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
@@ -41,6 +42,24 @@ function App() {
 
   const handleAdd = () => {
     setIsAdding(true);
+    setSelectedEmployee(null);
+  };
+
+  const handleCreateEmployee = async (newEmployee: IEmployee) => {
+    const createdEmployee = await EmployeeAPI.createEmployee(newEmployee);
+    setEmployees([...employees, createdEmployee]);
+    setIsAdding(false);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+  };
+
+  const handleDeleteEmployee = async (id: number) => {
+    await EmployeeAPI.deleteEmployee(id);
+    const updatedEmployees = employees.filter((employee) => employee.id !== id);
+    setEmployees(updatedEmployees);
+    setSelectedEmployee(null);
   };
 
   return (
@@ -51,6 +70,12 @@ function App() {
           employee={selectedEmployee}
           onUnselectEmployee={handleUnselectEmployee}
           onUpdateEmployee={handleUpdateEmployee}
+          onDeleteEmployee={handleDeleteEmployee}
+        />
+      ) : isAdding ? (
+        <EmployeeForm
+          onCreateEmployee={handleCreateEmployee}
+          onCancel={handleCancel}
         />
       ) : (
         <EmployeeList
