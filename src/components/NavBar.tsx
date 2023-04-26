@@ -1,16 +1,41 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography } from '@material-ui/core';
+import React from "react";
+import {
+  AppBar,
+  Button,
+  Theme,
+  Toolbar,
+  Typography,
+  createStyles,
+  makeStyles
+} from "@material-ui/core";
 
-const Navbar: React.FC = () => {
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    button: {
+      margin: theme.spacing(3, 3, 3)
+    },
+  })
+);
+
+interface IProps {
+  onAddEmployee: () => void;
+}
+
+const Navbar: React.FC<IProps> = ({onAddEmployee}) => {
+  const classes = useStyles();
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6">
-          Employee Manager
-        </Typography>
+        <Typography variant="h6">Employee Manager</Typography>
+        <Button
+        className={classes.button}
+        onClick={onAddEmployee}
+      >
+        Add Employee
+      </Button>
       </Toolbar>
     </AppBar>
   );
-}
+};
 
 export default Navbar;

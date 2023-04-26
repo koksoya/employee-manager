@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import React, { useState } from "react";
+import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
 import {
   Container,
   TextField,
   Typography,
   Grid,
-} from '@material-ui/core';
-import { IEmployee } from '../models/employee';
-import { EmployeeAPI } from '../API/EmployeeAPI';
+  Button,
+} from "@material-ui/core";
+import { IAddress, IEmployee } from "../models/employee";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -16,59 +15,54 @@ const useStyles = makeStyles((theme: Theme) =>
       marginTop: theme.spacing(4),
     },
     form: {
-      width: '100%',
+      width: "100%",
       marginTop: theme.spacing(3),
     },
-    submit: {
-      margin: theme.spacing(3, 0, 2),
+    button: {
+      margin: theme.spacing(3, 1, 2),
     },
   })
 );
 
-interface RouteParams {
-  id: string;
+interface IEmployeeDetailsProps {
+  employee: IEmployee;
+  onUnselectEmployee: (id: number) => void;
+  onUpdateEmployee: (employee: IEmployee) => void;
 }
 
-const EmployeeDetails: React.FC <IEmployee> = (employeeProp: IEmployee) => {
+const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
+  employee,
+  onUnselectEmployee,
+  onUpdateEmployee,
+}) => {
   const classes = useStyles();
-  const navigate = useNavigate();
-  const { id } = useParams();
-
-  const [employee, setEmployee] = useState<IEmployee>(employeeProp);
-
-  const handleSave = async() => {
-    // Update employee data on API
-    await EmployeeAPI.updateEmployee(employee).then();
-    navigate('/');
-    
-  };
-
-  const handleCancel = () => {
-    navigate('/');
-  };
+  const [employeeProp, setEmployee] = useState<IEmployee>(employee);
+  const [address, setAddress] = useState<IAddress>(employee.addresses[0]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setEmployee(prevEmployee => ({
+    setEmployee((prevEmployee) => ({
       ...prevEmployee,
       [name]: value,
     }));
   };
 
-  const handleAddressChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-    // const { name, value } = event.target;
-    // setEmployee(prevEmployee => ({
-    //   ...prevEmployee,
-    //   addresses: prevEmployee.addresses.map((address, i) =>
-    //     i === index ? { ...address, [name]: value } : address
-    //   ),
-    // }));
+  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setAddress((prevAddress) => ({
+      ...prevAddress,
+      [name]: value,
+    }));
+    setEmployee((prevEmployee) => ({
+      ...prevEmployee,
+      addresses: [address],
+    }));
   };
 
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
-        Edit Employee
+        Employee Info
       </Typography>
       <form className={classes.form} noValidate>
         <Grid container spacing={2}>
@@ -79,8 +73,8 @@ const EmployeeDetails: React.FC <IEmployee> = (employeeProp: IEmployee) => {
               fullWidth
               id="firstname"
               label="First Name"
-              name="firstname"
-              value={employee.firstName}
+              name="firstName"
+              value={employeeProp.firstName}
               onChange={handleInputChange}
             />
           </Grid>
@@ -91,8 +85,8 @@ const EmployeeDetails: React.FC <IEmployee> = (employeeProp: IEmployee) => {
               fullWidth
               id="lastname"
               label="Last Name"
-              name="lastname"
-              value={employee.lastName}
+              name="lastName"
+              value={employeeProp.lastName}
               onChange={handleInputChange}
             />
           </Grid>
@@ -104,13 +98,101 @@ const EmployeeDetails: React.FC <IEmployee> = (employeeProp: IEmployee) => {
               id="email"
               label="Email Address"
               name="email"
-              value={employee.addresses[0]}
-              />
-            </Grid>
-            </Grid>
-            </form>
-            </Container>
-            )
-  }
+              value={employeeProp.email}
+              onChange={handleInputChange}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="phone"
+              label="Phone Number"
+              name="phoneNumber"
+              value={employeeProp.phoneNumber}
+              onChange={handleInputChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="apartmentNumber"
+              label="Number"
+              name="apartmentNumber"
+              value={address.apartmentNumber}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="street"
+              label="Street"
+              name="streetName"
+              value={address.streetName}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="postalCode"
+              label="Postal Code"
+              name="postalCode"
+              value={address.postalCode}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="state"
+              label="State"
+              name="state"
+              value={address.state}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              variant="outlined"
+              required
+              fullWidth
+              id="country"
+              label="Country"
+              name="country"
+              value={address.country}
+              onChange={handleAddressChange}
+            />
+          </Grid>
+        </Grid>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          color="primary"
+          onClick={() => onUpdateEmployee(employeeProp)}
+        >
+          Update
+        </Button>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          onClick={() => onUnselectEmployee(employee.id)}
+        >
+          Back
+        </Button>
+      </form>
+    </Container>
+  );
+};
 
-  export default EmployeeDetails;
+export default EmployeeDetails;
