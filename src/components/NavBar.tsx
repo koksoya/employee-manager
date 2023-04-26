@@ -12,7 +12,9 @@ import {
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     button: {
-      margin: theme.spacing(3, 3, 3)
+      margin: theme.spacing(3, 3, 3),
+      color: 'inherit',
+      border: "2px solid white"
     },
   })
 );
