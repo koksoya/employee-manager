@@ -9,7 +9,7 @@ import {
   Typography,
   Grid,
 } from "@material-ui/core";
-import { IAddress, IEmployee } from "../models/employee";
+import { IAddress, IEmployee } from "../types/interfaces";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -47,6 +47,8 @@ const initialValues: IEmployee = {
   ],
 };
 
+
+
 const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
@@ -63,16 +65,16 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
   const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
-
     setAddress((prevAddress) => ({
       ...prevAddress,
       [name]: parsedValue,
     }));
     setEmployee((prevEmployee) => ({
       ...prevEmployee,
-      addresses: [address],
+      addresses: [{...address, [name]: parsedValue}],
     }));
   };
+
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">

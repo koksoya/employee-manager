@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@material-ui/core';
-import { IEmployee } from '../models/employee';
+import { IEmployee } from '../types/interfaces';
 import Employee from '../components/Employee';
 
 const useStyles = makeStyles((theme: Theme) =>

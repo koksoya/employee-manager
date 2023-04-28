@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IEmployee } from '../models/employee'
+import { IEmployee } from '../types/interfaces'
 
 const BASE_URL = 'https://procom-interview-employee-test.azurewebsites.net';
 

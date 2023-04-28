@@ -1,7 +1,7 @@
 import React from "react";
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
 import { TableRow, TableCell, Button } from "@material-ui/core";
-import { IEmployee } from "../models/employee";
+import { IEmployee } from "../types/interfaces";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({

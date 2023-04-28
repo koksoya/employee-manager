@@ -7,7 +7,7 @@ import {
   Grid,
   Button,
 } from "@material-ui/core";
-import { IAddress, IEmployee } from "../models/employee";
+import { IAddress, IEmployee } from "../types/interfaces";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -58,7 +58,7 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
     }));
     setEmployee((prevEmployee) => ({
       ...prevEmployee,
-      addresses: [address],
+      addresses: [{...address, [name]: parsedValue}],
     }));
   };
 
