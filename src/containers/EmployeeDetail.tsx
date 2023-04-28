@@ -8,6 +8,7 @@ import {
   Button,
 } from "@material-ui/core";
 import { IAddress, IEmployee } from "../types/interfaces";
+import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -40,6 +41,8 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
   const classes = useStyles();
   const [employeeProp, setEmployee] = useState<IEmployee>(employee);
   const [address, setAddress] = useState<IAddress>(employee.addresses[0]);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
+    useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -58,8 +61,16 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
     }));
     setEmployee((prevEmployee) => ({
       ...prevEmployee,
-      addresses: [{...address, [name]: parsedValue}],
+      addresses: [{ ...address, [name]: parsedValue }],
     }));
+  };
+
+  const handleDeleteConfirmationClose = () => {
+    setIsDeleteConfirmationOpen(false);
+  };
+
+  const handleDeleteConfirmationOpen = () => {
+    setIsDeleteConfirmationOpen(true);
   };
 
   return (
@@ -197,10 +208,15 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
           className={classes.button}
           variant="outlined"
           color="secondary"
-          onClick={() => onDeleteEmployee(employeeProp.id!)}
+          onClick={handleDeleteConfirmationOpen}
         >
           Delete
         </Button>
+        <DeleteEmployeeConfirmation
+          isOpen={isDeleteConfirmationOpen}
+          onClose={handleDeleteConfirmationClose}
+          onConfirm={() => onDeleteEmployee(employeeProp.id!)}
+        />
       </form>
     </Container>
   );
