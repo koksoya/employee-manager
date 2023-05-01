@@ -10,6 +10,7 @@ import {
   Grid,
 } from "@material-ui/core";
 import { IAddress, IEmployee } from "../types/interfaces";
+import Address from "../components/Address";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -47,12 +48,10 @@ const initialValues: IEmployee = {
   ],
 };
 
-
-
 const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
-  const [address, setAddress] = useState<IAddress>(employee.addresses[0]);
+  const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -62,18 +61,33 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
     }));
   };
 
-  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddressChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const { name, value } = event.target;
     const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
-    setAddress((prevAddress) => ({
-      ...prevAddress,
+    const newAddresses = [...addresses];
+
+    newAddresses[index] = {
+      ...newAddresses[index],
       [name]: parsedValue,
-    }));
-    setEmployee((prevEmployee) => ({
-      ...prevEmployee,
-      addresses: [{...address, [name]: parsedValue}],
-    }));
+    };
+    setAddresses([...newAddresses]);
+    setEmployee((prevEmployee) => {
+      const newAddresses = [...prevEmployee.addresses];
+      newAddresses[index] = {
+        ...newAddresses[index],
+        [name]: parsedValue,
+      };
+      return {
+        ...prevEmployee,
+        addresses: newAddresses,
+      };
+    });
   };
+
+
 
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
@@ -130,66 +144,13 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
               onChange={handleInputChange}
             />
           </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="apartmentNumber"
-              label="Number"
-              name="apartmentNumber"
-              value={address.apartmentNumber}
-              onChange={handleAddressChange}
+          {employee.addresses.map((address, index) => (
+            <Address
+              key={index}
+              address={address}
+              handleAddressChange={(e) => handleAddressChange(e, index)}
             />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="street"
-              label="Street"
-              name="streetName"
-              value={address.streetName}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="postalCode"
-              label="Postal Code"
-              name="postalCode"
-              value={address.postalCode}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="state"
-              label="State"
-              name="state"
-              value={address.state}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="country"
-              label="Country"
-              name="country"
-              value={address.country}
-              onChange={handleAddressChange}
-            />
-          </Grid>
+          ))}
         </Grid>
         <Button
           className={classes.button}

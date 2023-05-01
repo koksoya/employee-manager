@@ -153,7 +153,7 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
                 <Field
                   as={TextField}
                   name="email"
-                  label="email"
+                  label="Email"
                   variant="outlined"
                   fullWidth
                   error={touched.email && Boolean(errors.email)}
@@ -172,7 +172,7 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
                 />
               </Grid>
               <Grid item xs={6}>
-              <Field
+                <Field
                   as={TextField}
                   name="apartmentNumber"
                   label="Street Number"

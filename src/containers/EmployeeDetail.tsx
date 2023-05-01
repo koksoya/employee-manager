@@ -9,6 +9,7 @@ import {
 } from "@material-ui/core";
 import { IAddress, IEmployee } from "../types/interfaces";
 import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
+import Address from "../components/Address";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -40,7 +41,7 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
 }) => {
   const classes = useStyles();
   const [employeeProp, setEmployee] = useState<IEmployee>(employee);
-  const [address, setAddress] = useState<IAddress>(employee.addresses[0]);
+  const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
 
@@ -52,17 +53,30 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
     }));
   };
 
-  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddressChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const { name, value } = event.target;
     const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
-    setAddress((prevAddress) => ({
-      ...prevAddress,
+    const newAddresses = [...addresses];
+
+    newAddresses[index] = {
+      ...newAddresses[index],
       [name]: parsedValue,
-    }));
-    setEmployee((prevEmployee) => ({
-      ...prevEmployee,
-      addresses: [{ ...address, [name]: parsedValue }],
-    }));
+    };
+    setAddresses([...newAddresses]);
+    setEmployee((prevEmployee) => {
+      const newAddresses = [...prevEmployee.addresses];
+      newAddresses[index] = {
+        ...newAddresses[index],
+        [name]: parsedValue,
+      };
+      return {
+        ...prevEmployee,
+        addresses: newAddresses,
+      };
+    });
   };
 
   const handleDeleteConfirmationClose = () => {
@@ -128,66 +142,13 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
               onChange={handleInputChange}
             />
           </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="apartmentNumber"
-              label="Number"
-              name="apartmentNumber"
-              value={address.apartmentNumber}
-              onChange={handleAddressChange}
+          {addresses.map((address, index) => (
+            <Address
+              key={index}
+              address={address}
+              handleAddressChange={(e) => handleAddressChange(e, index)}
             />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="street"
-              label="Street"
-              name="streetName"
-              value={address.streetName}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="postalCode"
-              label="Postal Code"
-              name="postalCode"
-              value={address.postalCode}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="state"
-              label="State"
-              name="state"
-              value={address.state}
-              onChange={handleAddressChange}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <TextField
-              variant="outlined"
-              required
-              fullWidth
-              id="country"
-              label="Country"
-              name="country"
-              value={address.country}
-              onChange={handleAddressChange}
-            />
-          </Grid>
+          ))}
         </Grid>
         <Button
           className={classes.button}

@@ -4,7 +4,7 @@ export interface IEmployee {
     lastName: string;
     email: string;
     phoneNumber: string;
-    addresses: [IAddress];
+    addresses: IAddress[];
   }
 
  export interface IAddress {
