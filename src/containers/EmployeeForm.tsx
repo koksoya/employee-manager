@@ -9,11 +9,10 @@ import {
 import { IAddress, IEmployee } from "../types/interfaces";
 import Address from "../components/Address";
 import { useStyles } from "../styles/styles";
-
+import { Link } from "react-router-dom";
 
 interface IProps {
   onCreateEmployee: (employee: IEmployee) => void;
-  onCancel: () => void;
 }
 
 const initialValues: IEmployee = {
@@ -25,14 +24,14 @@ const initialValues: IEmployee = {
     {
       streetName: "",
       postalCode: "",
-      apartmentNumber: 0,
+      apartmentNumber: null,
       state: "",
       country: "",
     },
   ],
 };
 
-const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
+const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee }) => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
   const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
@@ -70,8 +69,6 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
       };
     });
   };
-
-
 
   function handleAddAddress() {
     setAddresses([...addresses, { ...initialValues.addresses[0] }]);
@@ -148,7 +145,6 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
           </Grid>
           {addresses.map((address, index) => (
             <Address
-            
               key={index}
               address={address}
               handleAddressChange={(e) => handleAddressChange(e, index)}
@@ -156,13 +152,13 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
             />
           ))}
           <Button
-          className={classes.button}
-          variant="outlined"
-          color="primary"
-          onClick={handleAddAddress}
-        >
-          Add Address
-        </Button>
+            className={classes.button}
+            variant="outlined"
+            color="primary"
+            onClick={handleAddAddress}
+          >
+            Add Address
+          </Button>
         </Grid>
         <Button
           className={classes.button}
@@ -172,12 +168,8 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
         >
           Save
         </Button>
-        <Button
-          className={classes.button}
-          variant="outlined"
-          onClick={onCancel}
-        >
-          Cancel
+        <Button className={classes.button} variant="outlined">
+          <Link to="/">Cancel</Link>
         </Button>
       </form>
     </Container>

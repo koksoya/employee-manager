@@ -10,6 +10,7 @@ import { IAddress, IEmployee } from "../types/interfaces";
 import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
 import Address from "../components/Address";
 import { useStyles } from "../styles/styles";
+import { Link } from "react-router-dom";
 
 
 const initialAddress: IAddress = {
@@ -22,14 +23,12 @@ const initialAddress: IAddress = {
 
 interface IEmployeeDetailsProps {
   employee: IEmployee;
-  onUnselectEmployee: () => void;
   onUpdateEmployee: (employee: IEmployee) => void;
   onDeleteEmployee: (id: number) => void;
 }
 
 const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
   employee,
-  onUnselectEmployee,
   onUpdateEmployee,
   onDeleteEmployee,
 }) => {
@@ -182,9 +181,8 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
         <Button
           className={classes.button}
           variant="outlined"
-          onClick={onUnselectEmployee}
         >
-          Back
+          <Link to="/">Back</Link>
         </Button>
         <Button
           className={classes.button}

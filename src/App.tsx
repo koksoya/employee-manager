@@ -7,12 +7,12 @@ import EmployeeDetail from "./containers/EmployeeDetail";
 import NavBar from "./components/NavBar";
 import EmployeeForm from "./containers/EmployeeForm";
 import EmployeeFormwithFormik from "./containers/EmployeeFormwithFormik";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 function App() {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<IEmployee | null>();
-  const [isAdding, setIsAdding] = useState<boolean>(false);
-  const [isAddingWithFormik, setIsAddingWithFormik] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,14 +23,11 @@ function App() {
   }, []);
 
   const handleSelectEmployee = (id: number) => {
-    const employee = employees.find((employee) => employee.id === id);
-    if (employee) {
-      setSelectedEmployee(employee);
+    const selectedEmployee = employees.find((employee) => employee.id === id);
+    if (selectedEmployee) {
+      setSelectedEmployee(selectedEmployee);
     }
-  };
-
-  const handleUnselectEmployee = () => {
-    setSelectedEmployee(null);
+    navigate(`/employee/${id}`);
   };
 
   const handleUpdateEmployee = async (updatedEmployee: IEmployee) => {
@@ -40,36 +37,19 @@ function App() {
     await EmployeeAPI.updateEmployee(updatedEmployee);
     setEmployees(updatedEmployees);
     setSelectedEmployee(null);
-  };
-
-  const handleAdd = () => {
-    setIsAdding(true);
-    setSelectedEmployee(null);
-  };
-
-  const handleAddWithFormik = () => {
-    setIsAddingWithFormik(true);
-    setSelectedEmployee(null);
+    navigate("/");
   };
 
   const handleCreateEmployee = async (newEmployee: IEmployee) => {
     const createdEmployee = await EmployeeAPI.createEmployee(newEmployee);
     setEmployees([...employees, createdEmployee]);
-    setIsAdding(false);
+    navigate("/");
   };
 
   const handleCreateEmployeeWithFormik = async (newEmployee: IEmployee) => {
     const createdEmployee = await EmployeeAPI.createEmployee(newEmployee);
     setEmployees([...employees, createdEmployee]);
-    setIsAdding(false);
-  };
-
-  const handleCancel = () => {
-    setIsAdding(false);
-  };
-
-  const handleCancelWithFormik = () => {
-    setIsAddingWithFormik(false);
+    navigate("/");
   };
 
   const handleDeleteEmployee = async (id: number) => {
@@ -77,34 +57,45 @@ function App() {
     const updatedEmployees = employees.filter((employee) => employee.id !== id);
     setEmployees(updatedEmployees);
     setSelectedEmployee(null);
+    navigate("/");
   };
 
   return (
     <div className="App">
-      <NavBar onAddEmployee={handleAdd} onAddEmployeeWithFormik={handleAddWithFormik} />
-      {selectedEmployee ? (
-        <EmployeeDetail
-          employee={selectedEmployee}
-          onUnselectEmployee={handleUnselectEmployee}
-          onUpdateEmployee={handleUpdateEmployee}
-          onDeleteEmployee={handleDeleteEmployee}
-        />
-      ) : isAdding ? (
-        <EmployeeForm
-          onCreateEmployee={handleCreateEmployee}
-          onCancel={handleCancel}
-        />
-      ) : isAddingWithFormik ? (
-        <EmployeeFormwithFormik
-          onCreateEmployee={handleCreateEmployeeWithFormik}
-          onCancel={handleCancelWithFormik}
-        />
-      ) : (
-        <EmployeeList
-          employees={employees}
-          onSelectEmployee={handleSelectEmployee}
-        />
-      )}
+      <NavBar />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <EmployeeList
+                employees={employees}
+                onSelectEmployee={handleSelectEmployee}
+              />
+            }
+          />
+          <Route
+            path="/employee/:id"
+            element={
+              <EmployeeDetail
+                employee={selectedEmployee!}
+                onUpdateEmployee={handleUpdateEmployee}
+                onDeleteEmployee={handleDeleteEmployee}
+              />
+            }
+          />
+          <Route
+            path="/formik"
+            element={
+              <EmployeeFormwithFormik
+                onCreateEmployee={handleCreateEmployeeWithFormik}
+              />
+            }
+          />
+          <Route
+            path="/add"
+            element={<EmployeeForm onCreateEmployee={handleCreateEmployee} />}
+          />
+        </Routes>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { IAddress, IEmployee } from "../types/interfaces";
 import Address from "../components/Address";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -31,7 +32,6 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface IProps {
   onCreateEmployee: (employee: IEmployee) => void;
-  onCancel: () => void;
 }
 
 const validationSchema = Yup.object({
@@ -68,10 +68,7 @@ const initialValues: IEmployee = {
   ],
 };
 
-const EmployeeFormwithFormik: React.FC<IProps> = ({
-  onCreateEmployee,
-  onCancel,
-}) => {
+const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee }) => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
   const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
@@ -220,12 +217,8 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
             >
               Submit
             </Button>
-            <Button
-              className={classes.button}
-              variant="outlined"
-              onClick={onCancel}
-            >
-              Cancel
+            <Button className={classes.button} variant="outlined">
+              <Link to="/">Cancel</Link>
             </Button>
           </Form>
         )}
