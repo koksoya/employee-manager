@@ -9,9 +9,10 @@ import {
   Typography,
   Grid,
 } from "@material-ui/core";
-import { Formik, Form, Field, useFormik, ErrorMessage } from "formik";
+import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { IAddress, IEmployee } from "../types/interfaces";
+import Address from "../components/Address";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -60,7 +61,7 @@ const initialValues: IEmployee = {
     {
       streetName: "",
       postalCode: "",
-      apartmentNumber: 0,
+      apartmentNumber: null,
       state: "",
       country: "",
     },
@@ -73,15 +74,7 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
 }) => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
-  const [address, setAddress] = useState<IAddress>(employee.addresses[0]);
-
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit: (values) => {
-      onCreateEmployee(values);
-    },
-  });
+  const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -91,18 +84,49 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
     }));
   };
 
-  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddressChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const { name, value } = event.target;
     const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
-    setAddress((prevAddress) => ({
-      ...prevAddress,
+    const newAddresses = [...addresses];
+
+    newAddresses[index] = {
+      ...newAddresses[index],
       [name]: parsedValue,
-    }));
-    setEmployee((prevEmployee) => ({
-      ...prevEmployee,
-      addresses: [{ ...address, [name]: parsedValue }],
-    }));
+    };
+    setAddresses([...newAddresses]);
+    setEmployee((prevEmployee) => {
+      const newAddresses = [...prevEmployee.addresses];
+      newAddresses[index] = {
+        ...newAddresses[index],
+        [name]: parsedValue,
+      };
+      return {
+        ...prevEmployee,
+        addresses: newAddresses,
+      };
+    });
   };
+
+  function handleAddAddress() {
+    setAddresses([...addresses, { ...initialValues.addresses[0] }]);
+  }
+
+  function handleRemoveAddress(index: number) {
+    const newAddresses = [...addresses];
+    newAddresses.splice(index, 1);
+    setAddresses([...newAddresses]);
+    setEmployee((prevEmployee) => {
+      const newAddresses = [...prevEmployee.addresses];
+      newAddresses.splice(index, 1);
+      return {
+        ...prevEmployee,
+        addresses: newAddresses,
+      };
+    });
+  }
 
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
@@ -125,7 +149,7 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
           handleSubmit,
           isSubmitting,
         }) => (
-          <Form className={classes.form} onSubmit={handleSubmit}>
+          <Form className={classes.form}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <Field
@@ -171,73 +195,30 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({
                   helperText={touched.phoneNumber && errors.phoneNumber}
                 />
               </Grid>
-              <Grid item xs={6}>
-                <Field
-                  as={TextField}
-                  name="apartmentNumber"
-                  label="Street Number"
-                  variant="outlined"
-                  fullWidth
-                  error={touched.addresses && Boolean(touched.addresses)}
-                  helperText={touched.addresses && errors.addresses}
+              {addresses.map((address, index) => (
+                <Address
+                  key={index}
+                  address={address}
+                  handleAddressChange={(e) => handleAddressChange(e, index)}
+                  handleRemoveAddress={() => handleRemoveAddress(index)}
                 />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  variant="outlined"
-                  required
-                  fullWidth
-                  id="street"
-                  label="Street"
-                  name="streetName"
-                  value={address.streetName}
-                  onChange={handleAddressChange}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  variant="outlined"
-                  required
-                  fullWidth
-                  id="postalCode"
-                  label="Postal Code"
-                  name="postalCode"
-                  value={address.postalCode}
-                  onChange={handleAddressChange}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  variant="outlined"
-                  required
-                  fullWidth
-                  id="state"
-                  label="State"
-                  name="state"
-                  value={address.state}
-                  onChange={handleAddressChange}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField
-                  variant="outlined"
-                  required
-                  fullWidth
-                  id="country"
-                  label="Country"
-                  name="country"
-                  value={address.country}
-                  onChange={handleAddressChange}
-                />
-              </Grid>
+              ))}
+              <Button
+                className={classes.button}
+                variant="outlined"
+                color="primary"
+                onClick={handleAddAddress}
+              >
+                Add Address
+              </Button>
             </Grid>
             <Button
+              type="submit"
               className={classes.button}
               variant="outlined"
               color="primary"
-              onClick={() => onCreateEmployee(employee)}
             >
-              Save
+              Submit
             </Button>
             <Button
               className={classes.button}

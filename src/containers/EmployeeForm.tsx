@@ -2,30 +2,14 @@ import React, { useState } from "react";
 import {
   TextField,
   Button,
-  makeStyles,
-  createStyles,
-  Theme,
   Container,
   Typography,
   Grid,
 } from "@material-ui/core";
 import { IAddress, IEmployee } from "../types/interfaces";
 import Address from "../components/Address";
+import { useStyles } from "../styles/styles";
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      marginTop: theme.spacing(4),
-    },
-    form: {
-      width: "100%",
-      marginTop: theme.spacing(3),
-    },
-    button: {
-      margin: theme.spacing(3, 1, 2),
-    },
-  })
-);
 
 interface IProps {
   onCreateEmployee: (employee: IEmployee) => void;
@@ -89,6 +73,24 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
 
 
 
+  function handleAddAddress() {
+    setAddresses([...addresses, { ...initialValues.addresses[0] }]);
+  }
+
+  function handleRemoveAddress(index: number) {
+    const newAddresses = [...addresses];
+    newAddresses.splice(index, 1);
+    setAddresses([...newAddresses]);
+    setEmployee((prevEmployee) => {
+      const newAddresses = [...prevEmployee.addresses];
+      newAddresses.splice(index, 1);
+      return {
+        ...prevEmployee,
+        addresses: newAddresses,
+      };
+    });
+  }
+
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
@@ -144,13 +146,23 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee, onCancel }) => {
               onChange={handleInputChange}
             />
           </Grid>
-          {employee.addresses.map((address, index) => (
+          {addresses.map((address, index) => (
             <Address
+            
               key={index}
               address={address}
               handleAddressChange={(e) => handleAddressChange(e, index)}
+              handleRemoveAddress={() => handleRemoveAddress(index)}
             />
           ))}
+          <Button
+          className={classes.button}
+          variant="outlined"
+          color="primary"
+          onClick={handleAddAddress}
+        >
+          Add Address
+        </Button>
         </Grid>
         <Button
           className={classes.button}

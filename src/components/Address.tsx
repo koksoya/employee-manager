@@ -1,15 +1,28 @@
-import { Grid, TextField } from "@material-ui/core";
+import { Button, Divider, Grid, TextField } from "@material-ui/core";
 import React from "react";
 import { IAddress } from "../types/interfaces";
+import { useStyles } from "../styles/styles";
 
 interface IAddressProps {
   address: IAddress;
+  key?: number;
   handleAddressChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleRemoveAddress: (index: number) => void;
 }
 
-const Address: React.FC<IAddressProps> = ({ address, handleAddressChange }) => {
+const Address: React.FC<IAddressProps> = ({
+  address,
+  handleAddressChange,
+  key,
+  handleRemoveAddress,
+}) => {
+  const classes = useStyles();
+
   return (
     <>
+      <Grid item xs={12}>
+        <Divider variant="middle" />
+      </Grid>
       <Grid item xs={6}>
         <TextField
           variant="outlined"
@@ -70,6 +83,14 @@ const Address: React.FC<IAddressProps> = ({ address, handleAddressChange }) => {
           onChange={handleAddressChange}
         />
       </Grid>
+      <Button
+        className={classes.button}
+        variant="outlined"
+        color="secondary"
+        onClick={() => handleRemoveAddress(key!)}
+      >
+        Remove Address
+      </Button>
     </>
   );
 };
