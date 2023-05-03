@@ -87,6 +87,7 @@ function App() {
             path="/formik"
             element={
               <EmployeeFormwithFormik
+                emails={employees.map((employee) => employee.email)}
                 onCreateEmployee={handleCreateEmployeeWithFormik}
               />
             }

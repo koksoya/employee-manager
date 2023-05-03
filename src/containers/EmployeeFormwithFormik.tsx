@@ -32,25 +32,10 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface IProps {
   onCreateEmployee: (employee: IEmployee) => void;
+  emails: string[];
 }
 
-const validationSchema = Yup.object({
-  firstName: Yup.string().required("First name is required"),
-  lastName: Yup.string().required("Last name is required"),
-  email: Yup.string()
-    .email("Invalid email format")
-    .required("Email is required"),
-  phoneNumber: Yup.string().required("Phone number is required"),
-  addresses: Yup.array().of(
-    Yup.object({
-      streetName: Yup.string().required("Street name is required"),
-      postalCode: Yup.string().required("Postal code is required"),
-      apartmentNumber: Yup.number().required("Apartment number is required"),
-      state: Yup.string().required("State is required"),
-      country: Yup.string().required("Country is required"),
-    })
-  ),
-});
+
 
 const initialValues: IEmployee = {
   firstName: "",
@@ -68,10 +53,32 @@ const initialValues: IEmployee = {
   ],
 };
 
-const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee }) => {
+const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
   const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
+
+  const validationSchema = Yup.object({
+    firstName: Yup.string().required("First name is required"),
+    lastName: Yup.string().required("Last name is required"),
+    email: Yup.string()
+      .email("Invalid email format")
+      .required("Email is required")
+      .test("email-exists", "Email already exists", function (value) {
+        const isEmailExists = emails.some((email) => email === value);
+        return !isEmailExists;
+      }),
+    phoneNumber: Yup.string().required("Phone number is required"),
+    addresses: Yup.array().of(
+      Yup.object({
+        streetName: Yup.string().required("Street name is required"),
+        postalCode: Yup.string().required("Postal code is required"),
+        apartmentNumber: Yup.number().required("Apartment number is required"),
+        state: Yup.string().required("State is required"),
+        country: Yup.string().required("Country is required"),
+      })
+    ),
+  });
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
