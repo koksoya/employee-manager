@@ -58,6 +58,15 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
   const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
 
+  const addressValidationSchema = Yup.object().shape({
+    streetName: Yup.string().required("Street name is required"),
+    postalCode: Yup.string().required("Postal code is required"),
+    apartmentNumber: Yup.number().required("Apartment number is required"),
+    state: Yup.string().required("State is required"),
+    country: Yup.string().required("Country is required"),
+  });
+  
+
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
@@ -69,15 +78,7 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
         return !isEmailExists;
       }),
     phoneNumber: Yup.string().required("Phone number is required"),
-    addresses: Yup.array().of(
-      Yup.object({
-        streetName: Yup.string().required("Street name is required"),
-        postalCode: Yup.string().required("Postal code is required"),
-        apartmentNumber: Yup.number().required("Apartment number is required"),
-        state: Yup.string().required("State is required"),
-        country: Yup.string().required("Country is required"),
-      })
-    ),
+    addresses: Yup.array().of(addressValidationSchema).min(1, "At least one address is required"),
   });
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,10 +202,13 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
               </Grid>
               {addresses.map((address, index) => (
                 <Address
+                  showRemoveButton={addresses.length > 1}
                   key={index}
                   address={address}
                   handleAddressChange={(e) => handleAddressChange(e, index)}
                   handleRemoveAddress={() => handleRemoveAddress(index)}
+                  errors={errors}
+                  touched={touched}
                 />
               ))}
               <Button

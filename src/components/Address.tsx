@@ -1,13 +1,19 @@
 import { Button, Divider, Grid, TextField } from "@material-ui/core";
 import React from "react";
-import { IAddress } from "../types/interfaces";
+import { IAddress, IEmployee } from "../types/interfaces";
 import { useStyles } from "../styles/styles";
+import { Field, FormikErrors, FormikTouched } from "formik";
 
 interface IAddressProps {
   address: IAddress;
   key?: number;
   handleAddressChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleRemoveAddress: (index: number) => void;
+  errors?: FormikErrors<IEmployee> | undefined;
+  helperText?: any;
+  showRemoveButton?: boolean;
+  values?: any;
+  touched?: FormikTouched<IEmployee> | undefined;
 }
 
 const Address: React.FC<IAddressProps> = ({
@@ -15,6 +21,9 @@ const Address: React.FC<IAddressProps> = ({
   handleAddressChange,
   key,
   handleRemoveAddress,
+  showRemoveButton = true,
+  touched,
+  errors
 }) => {
   const classes = useStyles();
 
@@ -33,7 +42,7 @@ const Address: React.FC<IAddressProps> = ({
           name="apartmentNumber"
           value={address.apartmentNumber}
           onChange={handleAddressChange}
-        />
+        />  
       </Grid>
       <Grid item xs={6}>
         <TextField
@@ -83,14 +92,16 @@ const Address: React.FC<IAddressProps> = ({
           onChange={handleAddressChange}
         />
       </Grid>
-      <Button
-        className={classes.button}
-        variant="outlined"
-        color="secondary"
-        onClick={() => handleRemoveAddress(key!)}
-      >
-        Remove Address
-      </Button>
+      {showRemoveButton && (
+        <Button
+          className={classes.button}
+          variant="outlined"
+          color="secondary"
+          onClick={() => handleRemoveAddress(key!)}
+        >
+          Remove Address
+        </Button>
+      )}
     </>
   );
 };

@@ -159,6 +159,7 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
               address={address}
               handleAddressChange={(e) => handleAddressChange(e, index)}
               handleRemoveAddress={() => handleRemoveAddress(index)}
+              showRemoveButton={addresses.length > 1}
             />
           ))}
           <Button
