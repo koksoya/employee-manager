@@ -31,9 +31,6 @@ const EmployeeList : React.FC<IProps> = ({employees,onSelectEmployee}) => {
 
   return (
     <div className={classes.root}>
-      {/* <Button variant="contained" color="primary" className={classes.button} onClick={handleAdd}>
-        Add Employee
-      </Button> */}
       <TableContainer component={Paper}>
         <Table className={classes.table} aria-label="Employee table">
           <TableHead>
