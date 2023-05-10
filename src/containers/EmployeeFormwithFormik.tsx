@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import {
   TextField,
   Button,
@@ -8,12 +8,13 @@ import {
   Container,
   Typography,
   Grid,
+  Divider,
 } from "@material-ui/core";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FormikErrors } from "formik";
 import * as Yup from "yup";
 import { IAddress, IEmployee } from "../types/interfaces";
 import { Link } from "react-router-dom";
-import Address from "../components/Address";
+import { EmployeeContext } from "../context/EmployeeContext";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -30,13 +31,6 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface IProps {
-  onCreateEmployee: (employee: IEmployee) => void;
-  emails: string[];
-}
-
-
-
 const initialValues: IEmployee = {
   firstName: "",
   lastName: "",
@@ -46,17 +40,17 @@ const initialValues: IEmployee = {
     {
       streetName: "",
       postalCode: "",
-      apartmentNumber: null,
+      apartmentNumber: "",
       state: "",
       country: "",
     },
   ],
 };
 
-const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) => {
+const EmployeeFormwithFormik: React.FC = () => {
+  const { handleCreateEmployee, employees } = useContext(EmployeeContext);
+  const emails = employees.map((employee) => employee.email);
   const classes = useStyles();
-  const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
-  const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
 
   const addressValidationSchema = Yup.object().shape({
     streetName: Yup.string().required("Street name is required"),
@@ -66,10 +60,25 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
     country: Yup.string().required("Country is required"),
   });
 
+  // const validationSchema = Yup.object({
+  //   firstName: Yup.string().required("First name is required"),
+  //   lastName: Yup.string().required("Last name is required"),
+  //   email: Yup.string()
+  //     .email("Invalid email format")
+  //     .required("Email is required")
+  //     .test("email-exists", "Email already exists", function (value) {
+  //       const isEmailExists = emails.some((email) => email === value);
+  //       return !isEmailExists;
+  //     }),
+  //   phoneNumber: Yup.string().required("Phone number is required"),
+  //   addresses: Yup.array()
+  //     .of(addressValidationSchema)
+  //     .min(1, "At least one address is required"),
+  // });
 
-  const validationSchema = Yup.object({
-    firstName: Yup.string().required("First name is required"),
-    lastName: Yup.string().required("Last name is required"),
+  const validationSchema = Yup.object().shape({
+    firstName: Yup.string().required("First Name is required"),
+    lastName: Yup.string().required("Last Name is required"),
     email: Yup.string()
       .email("Invalid email format")
       .required("Email is required")
@@ -77,61 +86,19 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
         const isEmailExists = emails.some((email) => email === value);
         return !isEmailExists;
       }),
-    phoneNumber: Yup.string().required("Phone number is required"),
-    addresses: Yup.array().of(addressValidationSchema).min(1, "At least one address is required"),
+    phoneNumber: Yup.string().required("Phone Number is required"),
+    addresses: Yup.array().of(
+      Yup.object().shape({
+        streetName: Yup.string().required("Street Name is required"),
+        postalCode: Yup.string().required("Postal Code is required"),
+        apartmentNumber: Yup.number()
+          .typeError("Apartment Number must be a number")
+          .required("Apartment Number is required"),
+        state: Yup.string().required("State is required"),
+        country: Yup.string().required("Country is required"),
+      })
+    ),
   });
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setEmployee((prevEmployee) => ({
-      ...prevEmployee,
-      [name]: value,
-    }));
-  };
-
-  const handleAddressChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const { name, value } = event.target;
-    const parsedValue = name === "apartmentNumber" ? parseInt(value) : value;
-    const newAddresses = [...addresses];
-
-    newAddresses[index] = {
-      ...newAddresses[index],
-      [name]: parsedValue,
-    };
-    setAddresses([...newAddresses]);
-    setEmployee((prevEmployee) => {
-      const newAddresses = [...prevEmployee.addresses];
-      newAddresses[index] = {
-        ...newAddresses[index],
-        [name]: parsedValue,
-      };
-      return {
-        ...prevEmployee,
-        addresses: newAddresses,
-      };
-    });
-  };
-
-  function handleAddAddress() {
-    setAddresses([...addresses, { ...initialValues.addresses[0] }]);
-  }
-
-  function handleRemoveAddress(index: number) {
-    const newAddresses = [...addresses];
-    newAddresses.splice(index, 1);
-    setAddresses([...newAddresses]);
-    setEmployee((prevEmployee) => {
-      const newAddresses = [...prevEmployee.addresses];
-      newAddresses.splice(index, 1);
-      return {
-        ...prevEmployee,
-        addresses: newAddresses,
-      };
-    });
-  }
 
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
@@ -142,18 +109,10 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={(values) => {
-          onCreateEmployee(values);
+          handleCreateEmployee(values);
         }}
       >
-        {({
-          values,
-          errors,
-          touched,
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          isSubmitting,
-        }) => (
+        {(formik) => (
           <Form className={classes.form}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
@@ -163,8 +122,12 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
                   label="First Name"
                   variant="outlined"
                   fullWidth
-                  error={touched.firstName && Boolean(errors.firstName)}
-                  helperText={touched.firstName && errors.firstName}
+                  error={
+                    formik.touched.firstName && Boolean(formik.errors.firstName)
+                  }
+                  helperText={
+                    formik.touched.firstName && formik.errors.firstName
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -174,68 +137,237 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
                   label="Last Name"
                   variant="outlined"
                   fullWidth
-                  error={touched.lastName && Boolean(errors.lastName)}
-                  helperText={touched.lastName && errors.lastName}
+                  error={
+                    formik.touched.lastName && Boolean(formik.errors.lastName)
+                  }
+                  helperText={formik.touched.lastName && formik.errors.lastName}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
                   name="email"
-                  label="Email"
+                  label="Email Address"
                   variant="outlined"
                   fullWidth
-                  error={touched.email && Boolean(errors.email)}
-                  helperText={touched.email && errors.email}
+                  error={formik.touched.email && Boolean(formik.errors.email)}
+                  helperText={formik.touched.email && formik.errors.email}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <Field
                   as={TextField}
                   name="phoneNumber"
                   label="Phone Number"
                   variant="outlined"
                   fullWidth
-                  error={touched.phoneNumber && Boolean(errors.phoneNumber)}
-                  helperText={touched.phoneNumber && errors.phoneNumber}
+                  error={
+                    formik.touched.phoneNumber &&
+                    Boolean(formik.errors.phoneNumber)
+                  }
+                  helperText={
+                    formik.touched.phoneNumber && formik.errors.phoneNumber
+                  }
                 />
               </Grid>
-              {addresses.map((address, index) => (
-                <Address
-                  showRemoveButton={addresses.length > 1}
-                  key={index}
-                  address={address}
-                  handleAddressChange={(e) => handleAddressChange(e, index)}
-                  handleRemoveAddress={() => handleRemoveAddress(index)}
-                  errors={errors}
-                  touched={touched}
-                />
-              ))}
-              <Button
-                className={classes.button}
-                variant="outlined"
-                color="primary"
-                onClick={handleAddAddress}
-              >
-                Add Address
-              </Button>
+              <Grid item xs={12}>
+                {formik.values.addresses.map(
+                  (address: IAddress, index: number) => (
+                    <Grid container spacing={2} key={index}>
+                      <Grid item xs={12}>
+                        <Divider variant="middle" />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Typography component="h4" variant="h6">
+                          Address {index + 1}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Field
+                          as={TextField}
+                          name={`addresses[${index}].apartmentNumber`}
+                          label="Apartment Number"
+                          variant="outlined"
+                          fullWidth
+                          error={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.apartmentNumber &&
+                            Boolean(
+                              (
+                                formik.errors
+                                  .addresses as FormikErrors<IAddress>[]
+                              )[index]?.apartmentNumber
+                            )
+                          }
+                          helperText={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.apartmentNumber &&
+                            (
+                              formik.errors
+                                .addresses as FormikErrors<IAddress>[]
+                            )[index]?.apartmentNumber
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Field
+                          as={TextField}
+                          name={`addresses[${index}].streetName`}
+                          label="Street Name"
+                          variant="outlined"
+                          fullWidth
+                          error={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.streetName &&
+                            Boolean(
+                              (
+                                formik.errors
+                                  .addresses as FormikErrors<IAddress>[]
+                              )[index]?.streetName
+                            )
+                          }
+                          helperText={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.streetName &&
+                            (
+                              formik.errors
+                                .addresses as FormikErrors<IAddress>[]
+                            )[index]?.streetName
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Field
+                          as={TextField}
+                          name={`addresses[${index}].postalCode`}
+                          label="Postal Code"
+                          variant="outlined"
+                          fullWidth
+                          error={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.postalCode &&
+                            Boolean(
+                              (
+                                formik.errors
+                                  .addresses as FormikErrors<IAddress>[]
+                              )[index]?.postalCode
+                            )
+                          }
+                          helperText={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.postalCode &&
+                            (
+                              formik.errors
+                                .addresses as FormikErrors<IAddress>[]
+                            )[index]?.postalCode
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Field
+                          as={TextField}
+                          name={`addresses[${index}].state`}
+                          label="State"
+                          variant="outlined"
+                          fullWidth
+                          error={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.state &&
+                            Boolean(
+                              (
+                                formik.errors
+                                  .addresses as FormikErrors<IAddress>[]
+                              )[index]?.state
+                            )
+                          }
+                          helperText={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.state &&
+                            (
+                              formik.errors
+                                .addresses as FormikErrors<IAddress>[]
+                            )[index]?.state
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Field
+                          as={TextField}
+                          name={`addresses[${index}].country`}
+                          label="Country"
+                          variant="outlined"
+                          fullWidth
+                          error={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.country &&
+                            Boolean(
+                              (
+                                formik.errors
+                                  .addresses as FormikErrors<IAddress>[]
+                              )[index]?.country
+                            )
+                          }
+                          helperText={
+                            formik.touched.addresses &&
+                            formik.touched.addresses[index]?.country &&
+                            (
+                              formik.errors
+                                .addresses as FormikErrors<IAddress>[]
+                            )[index]?.country
+                          }
+                        />
+                      </Grid>
+                      <Button
+                        className={classes.button}
+                        type="button"
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => {
+                          const addresses = [...formik.values.addresses];
+                          addresses.splice(index, 1);
+                          formik.setFieldValue("addresses", addresses);
+                        }}
+                      >
+                        Remove Address
+                      </Button>
+                    </Grid>
+                  )
+                )}
+                <Button
+                  className={classes.button}
+                  type="button"
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => {
+                    formik.setFieldValue("addresses", [
+                      ...formik.values.addresses,
+                      { streetName: "", postalCode: "", apartmentNumber: "" },
+                    ]);
+                  }}
+                >
+                  Add Address
+                </Button>
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={!formik.dirty || !formik.isValid}
+                  className={classes.button}
+                >
+                  Create
+                </Button>
+                <Button
+                  className={classes.button}
+                  variant="outlined"
+                  component={Link}
+                  to="/"
+                >
+                  Cancel
+                </Button>
+              </Grid>
             </Grid>
-            <Button
-              type="submit"
-              className={classes.button}
-              variant="outlined"
-              color="primary"
-            >
-              Submit
-            </Button>
-            <Button
-              className={classes.button}
-              variant="outlined"
-              component={Link}
-              to="/"
-            >
-              Cancel
-            </Button>
           </Form>
         )}
       </Formik>

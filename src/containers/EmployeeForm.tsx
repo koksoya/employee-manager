@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   TextField,
   Button,
@@ -10,10 +10,7 @@ import { IAddress, IEmployee } from "../types/interfaces";
 import Address from "../components/Address";
 import { useStyles } from "../styles/styles";
 import { Link } from "react-router-dom";
-
-interface IProps {
-  onCreateEmployee: (employee: IEmployee) => void;
-}
+import { EmployeeContext } from "../context/EmployeeContext";
 
 const initialValues: IEmployee = {
   firstName: "",
@@ -24,17 +21,19 @@ const initialValues: IEmployee = {
     {
       streetName: "",
       postalCode: "",
-      apartmentNumber: null,
+      apartmentNumber: "",
       state: "",
       country: "",
     },
   ],
 };
 
-const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee }) => {
+const EmployeeForm: React.FC = () => {
   const classes = useStyles();
   const [employee, setEmployee] = React.useState<IEmployee>(initialValues);
   const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
+
+  const { handleCreateEmployee } = useContext(EmployeeContext);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -164,7 +163,7 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee }) => {
           className={classes.button}
           variant="outlined"
           color="primary"
-          onClick={() => onCreateEmployee(employee)}
+          onClick={() => handleCreateEmployee(employee)}
         >
           Save
         </Button>

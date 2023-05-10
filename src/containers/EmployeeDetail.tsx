@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Container,
   TextField,
@@ -10,38 +10,60 @@ import { IAddress, IEmployee } from "../types/interfaces";
 import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
 import Address from "../components/Address";
 import { useStyles } from "../styles/styles";
-import { Link } from "react-router-dom";
-
+import { Link, useParams } from "react-router-dom";
+import { EmployeeContext } from "../context/EmployeeContext";
+import { EmployeeAPI } from "../API/EmployeeAPI";
 
 const initialAddress: IAddress = {
   streetName: "",
   postalCode: "",
-  apartmentNumber: null,
+  apartmentNumber: "",
   state: "",
   country: "",
 };
 
-interface IEmployeeDetailsProps {
-  employee: IEmployee;
-  onUpdateEmployee: (employee: IEmployee) => void;
-  onDeleteEmployee: (id: number) => void;
-}
-
-const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
-  employee,
-  onUpdateEmployee,
-  onDeleteEmployee,
-}) => {
+const EmployeeDetails: React.FC = () => {
   const classes = useStyles();
-  const [employeeProp, setEmployee] = useState<IEmployee>(employee);
-  const [addresses, setAddresses] = useState<IAddress[]>(employee.addresses);
+  const {
+    selectedEmployee,
+    setSelectedEmployee,
+    handleUpdateEmployee,
+    handleDeleteEmployee,
+  } = useContext(EmployeeContext);
+
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      const employee = await EmployeeAPI.getOneEmployee(id!);
+      setSelectedEmployee(employee || null);
+    };
+
+    if (!selectedEmployee) {
+      fetchEmployee();
+    }
+  }, [id, selectedEmployee, setSelectedEmployee]);
+
+  useEffect(() => {
+    if (selectedEmployee) {
+      setEmployee(selectedEmployee);
+      setAddresses(selectedEmployee.addresses);
+    }
+  }, [selectedEmployee]);
+
+  const [employeeProp, setEmployee] = useState<IEmployee | null>(
+    selectedEmployee || null
+  );
+  const [addresses, setAddresses] = useState<IAddress[]>(
+    selectedEmployee?.addresses || [initialAddress]
+  );
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setEmployee((prevEmployee) => ({
-      ...prevEmployee,
+      ...prevEmployee!,
       [name]: value,
     }));
   };
@@ -58,8 +80,10 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
       ...newAddresses[index],
       [name]: parsedValue,
     };
-    setAddresses([...newAddresses]);
+    setAddresses(newAddresses);
     setEmployee((prevEmployee) => {
+      if (!prevEmployee) return null;
+
       const newAddresses = [...prevEmployee.addresses];
       newAddresses[index] = {
         ...newAddresses[index],
@@ -81,7 +105,7 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
   };
 
   function handleAddAddress() {
-    setAddresses([...addresses, { ...initialAddress}]);
+    setAddresses([...addresses, { ...initialAddress }]);
   }
 
   function handleRemoveAddress(index: number) {
@@ -89,13 +113,29 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
     newAddresses.splice(index, 1);
     setAddresses([...newAddresses]);
     setEmployee((prevEmployee) => {
-      const newAddresses = [...prevEmployee.addresses];
+      const newAddresses = [...(prevEmployee?.addresses ?? [])];
       newAddresses.splice(index, 1);
       return {
         ...prevEmployee,
         addresses: newAddresses,
-      };
+      } as IEmployee;
     });
+  }
+
+  if (!employeeProp) {
+    return (
+      <div className={classes.root}>
+        <div>Employee not found</div>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          component={Link}
+          to="/"
+        >
+          Back to Main Page
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -175,7 +215,7 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
           className={classes.button}
           variant="outlined"
           color="primary"
-          onClick={() => onUpdateEmployee(employeeProp)}
+          onClick={() => handleUpdateEmployee(employeeProp)}
         >
           Update
         </Button>
@@ -198,7 +238,7 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
         <DeleteEmployeeConfirmation
           isOpen={isDeleteConfirmationOpen}
           onClose={handleDeleteConfirmationClose}
-          onConfirm={() => onDeleteEmployee(employeeProp.id!)}
+          onConfirm={() => handleDeleteEmployee(employeeProp.id!)}
         />
       </form>
     </Container>

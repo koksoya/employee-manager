@@ -16,7 +16,7 @@ interface IAddressProps {
   touched?: FormikTouched<IEmployee> | undefined;
 }
 
-const Address: React.FC<IAddressProps> = ({
+const AddressFormik: React.FC<IAddressProps> = ({
   address,
   handleAddressChange,
   index,
@@ -33,15 +33,16 @@ const Address: React.FC<IAddressProps> = ({
         <Divider variant="middle" />
       </Grid>
       <Grid item xs={6}>
-        <TextField
+        <Field
+          as={TextField}
           variant="outlined"
           required
           fullWidth
           id="apartmentNumber"
           label="Number"
           name="apartmentNumber"
-          value={address.apartmentNumber}
-          onChange={handleAddressChange}
+          error={touched!.addresses && errors?.addresses && touched!.addresses[index!].apartmentNumber 
+            && errors?.addresses[index!] ? true : false}
         />  
       </Grid>
       <Grid item xs={6}>
@@ -106,4 +107,4 @@ const Address: React.FC<IAddressProps> = ({
   );
 };
 
-export default Address;
+export default AddressFormik;

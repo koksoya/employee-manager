@@ -1,15 +1,23 @@
-import React from 'react';
-import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@material-ui/core';
-import { IEmployee } from '../types/interfaces';
-import Employee from '../components/Employee';
+import React, { useContext } from "react";
+import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@material-ui/core";
+import Employee from "../components/Employee";
+import { EmployeeContext } from "../context/EmployeeContext";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
       margin: theme.spacing(2),
     },
     table: {
@@ -21,19 +29,14 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface IProps {
-  employees: IEmployee[];
-  onSelectEmployee: (id: number) => void;
-}
 
-const EmployeeList : React.FC<IProps> = ({employees,onSelectEmployee}) => {
+const EmployeeList: React.FC = () => {
+  const { employees, handleSelectEmployee: onSelectEmployee } = useContext(EmployeeContext);
+
   const classes = useStyles();
 
   return (
     <div className={classes.root}>
-      {/* <Button variant="contained" color="primary" className={classes.button} onClick={handleAdd}>
-        Add Employee
-      </Button> */}
       <TableContainer component={Paper}>
         <Table className={classes.table} aria-label="Employee table">
           <TableHead>
