@@ -12,8 +12,8 @@ import {
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { IAddress, IEmployee } from "../types/interfaces";
-import Address from "../components/Address";
 import { Link } from "react-router-dom";
+import Address from "../components/Address";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -65,7 +65,7 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
     state: Yup.string().required("State is required"),
     country: Yup.string().required("Country is required"),
   });
-  
+
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
@@ -228,8 +228,13 @@ const EmployeeFormwithFormik: React.FC<IProps> = ({ onCreateEmployee,emails }) =
             >
               Submit
             </Button>
-            <Button className={classes.button} variant="outlined">
-              <Link to="/">Cancel</Link>
+            <Button
+              className={classes.button}
+              variant="outlined"
+              component={Link}
+              to="/"
+            >
+              Cancel
             </Button>
           </Form>
         )}

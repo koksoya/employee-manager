@@ -163,13 +163,13 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
             />
           ))}
           <Button
-          className={classes.button}
-          variant="outlined"
-          color="primary"
-          onClick={handleAddAddress}
-        >
-          Add Address
-        </Button>
+            className={classes.button}
+            variant="outlined"
+            color="primary"
+            onClick={handleAddAddress}
+          >
+            Add Address
+          </Button>
         </Grid>
         <Button
           className={classes.button}
@@ -182,8 +182,10 @@ const EmployeeDetails: React.FC<IEmployeeDetailsProps> = ({
         <Button
           className={classes.button}
           variant="outlined"
+          component={Link}
+          to="/"
         >
-          <Link to="/">Back</Link>
+          Back
         </Button>
         <Button
           className={classes.button}

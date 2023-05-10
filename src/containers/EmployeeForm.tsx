@@ -168,8 +168,13 @@ const EmployeeForm: React.FC<IProps> = ({ onCreateEmployee }) => {
         >
           Save
         </Button>
-        <Button className={classes.button} variant="outlined">
-          <Link to="/">Cancel</Link>
+        <Button
+          className={classes.button}
+          variant="outlined"
+          component={Link}
+          to="/"
+        >
+          Cancel
         </Button>
       </form>
     </Container>
