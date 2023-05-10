@@ -9,11 +9,11 @@ const Navbar: React.FC = () => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6">Employee Manager</Typography>
-        <Button className={classes.buttonNavbar}>
-          <Link to="/add">Add Employee</Link>
+        <Button className={classes.buttonNavbar} component={Link} to="/add">
+          Add Employee
         </Button>
-        <Button className={classes.buttonNavbar}>
-          <Link to="/formik ">Add with Formik</Link>
+        <Button className={classes.buttonNavbar} component={Link} to="/formik">
+          Add with Formik
         </Button>
       </Toolbar>
     </AppBar>
