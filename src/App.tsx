@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import "./App.css";
-import EmployeeList from "./containers/EmployeeList";
 import { IEmployee } from "./types/interfaces";
 import { EmployeeAPI } from "./API/EmployeeAPI";
-import EmployeeDetail from "./containers/EmployeeDetail";
 import NavBar from "./components/NavBar";
-import EmployeeForm from "./containers/EmployeeForm";
-import EmployeeFormwithFormik from "./containers/EmployeeFormwithFormik";
 import { Routes, Route, useNavigate } from "react-router-dom";
+
+const EmployeeList = lazy(() => import("./containers/EmployeeList"));
+const EmployeeDetail = lazy(() => import("./containers/EmployeeDetail"));
+const EmployeeForm = lazy(() => import("./containers/EmployeeForm"));
+const EmployeeFormwithFormik = lazy(
+  () => import("./containers/EmployeeFormwithFormik")
+);
 
 function App() {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
@@ -63,6 +66,7 @@ function App() {
   return (
     <div className="App">
       <NavBar />
+      <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route
             path="/"
@@ -97,6 +101,7 @@ function App() {
             element={<EmployeeForm onCreateEmployee={handleCreateEmployee} />}
           />
         </Routes>
+      </Suspense>
     </div>
   );
 }
