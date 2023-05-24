@@ -10,7 +10,7 @@ export interface IEmployee {
  export interface IAddress {
     streetName: string;
     postalCode: string;
-    apartmentNumber: string;
+    apartmentNumber: number;
     state: string;
     country: string;
   }

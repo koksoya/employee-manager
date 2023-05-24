@@ -2,7 +2,7 @@ import { Button, Divider, Grid, TextField } from "@material-ui/core";
 import React from "react";
 import { IAddress, IEmployee } from "../types/interfaces";
 import { useStyles } from "../styles/styles";
-import { Field, FormikErrors, FormikTouched } from "formik";
+import { FormikErrors, FormikTouched } from "formik";
 
 interface IAddressProps {
   address: IAddress;
@@ -22,8 +22,6 @@ const Address: React.FC<IAddressProps> = ({
   index,
   handleRemoveAddress,
   showRemoveButton = true,
-  touched,
-  errors
 }) => {
   const classes = useStyles();
 

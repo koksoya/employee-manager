@@ -12,9 +12,6 @@ const Navbar: React.FC = () => {
         <Button className={classes.buttonNavbar} component={Link} to="/add">
           Add Employee
         </Button>
-        <Button className={classes.buttonNavbar} component={Link} to="/formik">
-          Add with Formik
-        </Button>
       </Toolbar>
     </AppBar>
   );

@@ -10,6 +10,7 @@ interface IEmployeeContext {
   selectedEmployee: IEmployee | null;
   setSelectedEmployee: (employee: IEmployee | null) => void;
   handleSelectEmployee: (id: number) => void;
+  handleUnselectEmployee: () => void;
   handleUpdateEmployee: (updatedEmployee: IEmployee) => void;
   handleCreateEmployee: (newEmployee: IEmployee) => void;
   handleDeleteEmployee: (id: number) => void;
@@ -22,6 +23,7 @@ export const EmployeeContext = createContext<IEmployeeContext>({
   setSelectedEmployee: () => {},
   setEmployees: () => {},
   handleSelectEmployee: () => {},
+  handleUnselectEmployee: () => {},
   handleUpdateEmployee: () => {},
   handleCreateEmployee: () => {},
   handleDeleteEmployee: () => {},
@@ -50,6 +52,11 @@ export default ({ children }: { children: React.ReactNode }) => {
       setSelectedEmployee(selectedEmployee);
     }
     navigate(`/employee/${id}`);
+  };
+
+  const handleUnselectEmployee = () => {
+    setSelectedEmployee(null);
+    navigate("/");
   };
 
   const handleUpdateEmployee = async (updatedEmployee: IEmployee) => {
@@ -90,6 +97,7 @@ export default ({ children }: { children: React.ReactNode }) => {
         setSelectedEmployee,
         setEmployees,
         handleSelectEmployee,
+        handleUnselectEmployee,
         handleUpdateEmployee,
         handleCreateEmployee,
         handleDeleteEmployee,

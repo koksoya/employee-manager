@@ -16,6 +16,11 @@ createStyles({
     margin: theme.spacing(3, 3, 3),
       color: 'inherit',
       border: "2px solid white"
-  }
+  },
+  errorMessage: {
+    color: "red",
+    fontSize: "0.875rem",
+    marginTop: theme.spacing(0.5),
+  },
 })
 );
