@@ -87,7 +87,7 @@ const EmployeeFormwithFormik: React.FC = () => {
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
-        Add New Employee with Validation
+        Add New Employee
       </Typography>
       <Formik
         enableReinitialize
