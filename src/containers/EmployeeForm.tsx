@@ -5,9 +5,8 @@ import {
   Container,
   Typography,
   Grid,
-  Divider,
 } from "@material-ui/core";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
 import * as Yup from "yup";
 import { IAddress } from "../types/interfaces";
 import { useParams } from "react-router-dom";
@@ -15,8 +14,9 @@ import { EmployeeContext } from "../context/EmployeeContext";
 import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
 import { EmployeeAPI } from "../API/EmployeeAPI";
 import { useStyles } from "../styles/styles";
+import Address from "../components/Address";
 
-const EmployeeFormwithFormik: React.FC = () => {
+const EmployeeForm: React.FC = () => {
   const {
     handleCreateEmployee,
     handleUnselectEmployee,
@@ -79,11 +79,6 @@ const EmployeeFormwithFormik: React.FC = () => {
     setIsDeleteConfirmationOpen(true);
   };
 
-  const parseApartmentNumber = (value: string) => {
-    const parsedValue = parseInt(value, 10);
-    return isNaN(parsedValue) ? 0 : parsedValue;
-  };
-
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
@@ -128,7 +123,7 @@ const EmployeeFormwithFormik: React.FC = () => {
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="firstName" />
+                <ErrorMessage name="firstName" component="div" />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Field
@@ -138,7 +133,7 @@ const EmployeeFormwithFormik: React.FC = () => {
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="lastName" />
+                <ErrorMessage name="lastName" component="div" />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Field
@@ -148,7 +143,7 @@ const EmployeeFormwithFormik: React.FC = () => {
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="email" />
+                <ErrorMessage name="email" component="div" />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Field
@@ -158,111 +153,36 @@ const EmployeeFormwithFormik: React.FC = () => {
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="phoneNumber" />
+                <ErrorMessage name="phoneNumber" component="div" />
               </Grid>
-              <Grid item xs={12}>
-                {formik.values.addresses.map(
-                  (address: IAddress, index: number) => (
-                    <Grid container spacing={2} key={index}>
-                      <Grid item xs={12}>
-                        <Divider variant="middle" />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography component="h4" variant="h6">
-                          Address {index + 1}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Field
-                          as={TextField}
-                          name={`addresses[${index}].apartmentNumber`}
-                          label="Apartment Number"
-                          variant="outlined"
-                          type="number"
-                          fullWidth
-                          parse={parseApartmentNumber}
-                        />
-                        <ErrorMessage
-                          name={`addresses[${index}].apartmentNumber`}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <Field
-                          as={TextField}
-                          name={`addresses[${index}].streetName`}
-                          label="Street Name"
-                          variant="outlined"
-                          fullWidth
-                        />
-                        <ErrorMessage name={`addresses[${index}].streetName`} />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Field
-                          as={TextField}
-                          name={`addresses[${index}].postalCode`}
-                          label="Postal Code"
-                          variant="outlined"
-                          fullWidth
-                        />
-                        <ErrorMessage name={`addresses[${index}].postalCode`} />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Field
-                          as={TextField}
-                          name={`addresses[${index}].state`}
-                          label="State"
-                          variant="outlined"
-                          fullWidth
-                        />
-                        <ErrorMessage name={`addresses[${index}].state`} />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Field
-                          as={TextField}
-                          name={`addresses[${index}].country`}
-                          label="Country"
-                          variant="outlined"
-                          fullWidth
-                        />
-                        <ErrorMessage name={`addresses[${index}].country`} />
-                      </Grid>
-                      <Button
-                        className={classes.button}
-                        type="button"
-                        variant="outlined"
-                        color="secondary"
-                        onClick={() => {
-                          const addresses = [...formik.values.addresses];
-                          addresses.splice(index, 1);
-                          formik.setFieldValue("addresses", addresses);
-                        }}
-                      >
-                        Remove Address
-                      </Button>
-                    </Grid>
-                  )
+              <FieldArray name="addresses">
+                {({ push, remove }) => (
+                  <div>
+                    {formik.values.addresses.map(
+                      (address: IAddress, index: number) => (
+                        <Address key={index} index={index} remove={remove} />
+                      )
+                    )}
+                    <Button
+                      className={classes.button}
+                      type="button"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() =>
+                        push({
+                          streetName: "",
+                          postalCode: "",
+                          apartmentNumber: 0,
+                          state: "",
+                          country: "",
+                        })
+                      }
+                    >
+                      Add Address
+                    </Button>
+                  </div>
                 )}
-                <Button
-                  className={classes.button}
-                  type="button"
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => {
-                    formik.setFieldValue("addresses", [
-                      ...formik.values.addresses,
-                      {
-                        streetName: "",
-                        postalCode: "",
-                        apartmentNumber: 0,
-                        state: "",
-                        country: "",
-                      },
-                    ]);
-                  }}
-                >
-                  Add Address
-                </Button>
-              </Grid>
+              </FieldArray>
               <Grid item xs={12}>
                 {selectedEmployee !== null ? (
                   <>
@@ -326,4 +246,4 @@ const EmployeeFormwithFormik: React.FC = () => {
   );
 };
 
-export default EmployeeFormwithFormik;
+export default EmployeeForm;

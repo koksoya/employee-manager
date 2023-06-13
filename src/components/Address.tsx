@@ -1,106 +1,113 @@
-import { Button, Divider, Grid, TextField } from "@material-ui/core";
+import { Button, Divider, Grid, TextField, Typography } from "@material-ui/core";
 import React from "react";
-import { IAddress, IEmployee } from "../types/interfaces";
 import { useStyles } from "../styles/styles";
-import { FormikErrors, FormikTouched } from "formik";
+import { ErrorMessage, Field } from "formik";
 
 interface IAddressProps {
-  address: IAddress;
-  index?: number;
-  handleAddressChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleRemoveAddress: (index: number) => void;
-  errors?: FormikErrors<IEmployee> | undefined;
-  helperText?: any;
-  showRemoveButton?: boolean;
-  values?: any;
-  touched?: FormikTouched<IEmployee> | undefined;
+  index: number;
+  remove: (index: number) => void;
 }
 
+const parseApartmentNumber = (value: string) => {
+  const parsedValue = parseInt(value, 10);
+  return isNaN(parsedValue) ? 0 : parsedValue;
+};
+
 const Address: React.FC<IAddressProps> = ({
-  address,
-  handleAddressChange,
   index,
-  handleRemoveAddress,
-  showRemoveButton = true,
+  remove,
 }) => {
   const classes = useStyles();
 
+
+
   return (
-    <>
-      <Grid item xs={12}>
-        <Divider variant="middle" />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          variant="outlined"
-          required
-          fullWidth
-          id="apartmentNumber"
-          label="Number"
-          name="apartmentNumber"
-          value={address.apartmentNumber}
-          onChange={handleAddressChange}
-        />  
-      </Grid>
-      <Grid item xs={6}>
-        <TextField
-          variant="outlined"
-          required
-          fullWidth
-          id="street"
-          label="Street"
-          name="streetName"
-          value={address.streetName}
-          onChange={handleAddressChange}
-        />
-      </Grid>
-      <Grid item xs={4}>
-        <TextField
-          variant="outlined"
-          required
-          fullWidth
-          id="postalCode"
-          label="Postal Code"
-          name="postalCode"
-          value={address.postalCode}
-          onChange={handleAddressChange}
-        />
-      </Grid>
-      <Grid item xs={4}>
-        <TextField
-          variant="outlined"
-          required
-          fullWidth
-          id="state"
-          label="State"
-          name="state"
-          value={address.state}
-          onChange={handleAddressChange}
-        />
-      </Grid>
-      <Grid item xs={4}>
-        <TextField
-          variant="outlined"
-          required
-          fullWidth
-          id="country"
-          label="Country"
-          name="country"
-          value={address.country}
-          onChange={handleAddressChange}
-        />
-      </Grid>
-      {showRemoveButton && (
-        <Button
-          className={classes.button}
-          variant="outlined"
-          color="secondary"
-          onClick={() => handleRemoveAddress(index!)}
-        >
-          Remove Address
-        </Button>
-      )}
-    </>
+    <Grid container spacing={2} key={index}>
+    <Grid item xs={12}>
+      <Divider variant="middle" />
+    </Grid>
+    <Grid item xs={12}>
+      <Typography component="h4" variant="h6">
+        Address {index + 1}
+      </Typography>
+    </Grid>
+    <Grid item xs={12} sm={6}>
+      <Field
+        as={TextField}
+        name={`addresses[${index}].apartmentNumber`}
+        label="Apartment Number"
+        variant="outlined"
+        type="number"
+        fullWidth
+        parse={parseApartmentNumber}
+      />
+      <ErrorMessage
+        name={`addresses[${index}].apartmentNumber`}
+        component="div"
+      />
+    </Grid>
+    <Grid item xs={12} sm={6}>
+      <Field
+        as={TextField}
+        name={`addresses[${index}].streetName`}
+        label="Street Name"
+        variant="outlined"
+        fullWidth
+      />
+      <ErrorMessage
+        name={`addresses[${index}].streetName`}
+        component="div"
+      />
+    </Grid>
+    <Grid item xs={12} sm={4}>
+      <Field
+        as={TextField}
+        name={`addresses[${index}].postalCode`}
+        label="Postal Code"
+        variant="outlined"
+        fullWidth
+      />
+      <ErrorMessage
+        name={`addresses[${index}].postalCode`}
+        component="div"
+      />
+    </Grid>
+    <Grid item xs={12} sm={4}>
+      <Field
+        as={TextField}
+        name={`addresses[${index}].state`}
+        label="State"
+        variant="outlined"
+        fullWidth
+      />
+      <ErrorMessage
+        name={`addresses[${index}].state`}
+        component="div"
+      />
+    </Grid>
+    <Grid item xs={12} sm={4}>
+      <Field
+        as={TextField}
+        name={`addresses[${index}].country`}
+        label="Country"
+        variant="outlined"
+        fullWidth
+      />
+      <ErrorMessage
+        name={`addresses[${index}].country`}
+        component="div"
+      />
+    </Grid>
+    <Button
+      className={classes.button}
+      type="button"
+      variant="outlined"
+      color="secondary"
+      onClick={() => remove(index)}
+    >
+      Remove Address
+    </Button>
+  </Grid>
   );
 };
 
