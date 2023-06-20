@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   TextField,
   Button,
@@ -51,7 +51,7 @@ const EmployeeForm: React.FC = () => {
     };
   }, [id, employee]);
 
-  const validationSchema = Yup.object().shape({
+  const validationSchema = useMemo(() => Yup.object().shape({
     firstName: Yup.string().required("First Name is required"),
     lastName: Yup.string().required("Last Name is required"),
     email: Yup.string()
@@ -75,15 +75,16 @@ const EmployeeForm: React.FC = () => {
         country: Yup.string().required("Country is required"),
       })
     ),
-  });
+  }),[emails, employee?.email]);
 
-  const handleDeleteConfirmationClose = () => {
+  const handleDeleteConfirmationClose = useCallback(() => {
     setIsDeleteConfirmationOpen(false);
-  };
-
-  const handleDeleteConfirmationOpen = () => {
+  }, []);
+  
+  const handleDeleteConfirmationOpen = useCallback(() => {
     setIsDeleteConfirmationOpen(true);
-  };
+  }, []);
+  
 
   const handleCreateEmployee = async (newEmployee: IEmployee) => {
     await employeeService.createEmployee(newEmployee);

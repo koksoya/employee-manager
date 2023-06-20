@@ -1,13 +1,10 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import "./App.css";
 import NavBar from "./components/NavBar";
 import { Routes, Route } from "react-router-dom";
 import NotFound from "./containers/NotFound";
-
-const EmployeeList = lazy(() => import("./containers/EmployeeList"));
-const EmployeeForm = lazy(
-  () => import("./containers/EmployeeForm")
-);
+import EmployeeList from "./containers/EmployeeList";
+import EmployeeForm from "./containers/EmployeeForm";
 
 function App() {
   return (

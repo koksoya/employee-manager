@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
 import {
   Table,
@@ -50,10 +50,13 @@ const EmployeeList: React.FC = () => {
   const classes = useStyles();
   const navigate = useNavigate();
 
-  const handleSelectEmployee = async (id: string) => {
-    await employeeService.setSelectedEmployeeById(id);
-    navigate(`/employee/${id}`);
-  };
+  const handleSelectEmployee = useCallback(
+    async (id: string) => {
+      await employeeService.setSelectedEmployeeById(id);
+      navigate(`/employee/${id}`);
+    },
+    [navigate]
+  );
 
   return (
     <div className={classes.root}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import {
@@ -44,7 +44,7 @@ const DeleteEmployeeConfirmation: React.FC<IProps> = ({
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogContent>
               <p>Are you sure you want to delete this employee?</p>
-              <Field type="checkbox" name="confirmation" as={Checkbox} />
+              <Field type="checkbox" name="confirmation" id="confirmation" as={Checkbox} />
               <label htmlFor="confirmation">
                 Yes, I want to delete this employee
               </label>
