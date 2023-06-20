@@ -8,11 +8,6 @@ interface IAddressProps {
   remove: (index: number) => void;
 }
 
-const parseApartmentNumber = (value: string) => {
-  const parsedValue = parseInt(value, 10);
-  return isNaN(parsedValue) ? 0 : parsedValue;
-};
-
 const Address: React.FC<IAddressProps> = ({
   index,
   remove,
@@ -39,7 +34,6 @@ const Address: React.FC<IAddressProps> = ({
         variant="outlined"
         type="number"
         fullWidth
-        parse={parseApartmentNumber}
       />
       <ErrorMessage
         name={`addresses[${index}].apartmentNumber`}

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
 import {
   Table,
@@ -10,7 +10,9 @@ import {
   Paper,
 } from "@material-ui/core";
 import Employee from "../components/Employee";
-import { EmployeeContext } from "../context/EmployeeContext";
+import employeeService from "../services/EmployeeService";
+import { IEmployee } from "../types/interfaces";
+import { useNavigate } from "react-router-dom";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -29,11 +31,29 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-
 const EmployeeList: React.FC = () => {
-  const { employees, handleSelectEmployee: onSelectEmployee } = useContext(EmployeeContext);
+  const [employees, setEmployees] = useState<IEmployee[]>([]);
+
+  useEffect(() => {
+    const subscription = employeeService.employees$.subscribe(
+      (updatedEmployees) => {
+        setEmployees(updatedEmployees);
+      }
+    );
+    employeeService.initializeEmployees();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const classes = useStyles();
+  const navigate = useNavigate();
+
+  const handleSelectEmployee = async (id: string) => {
+    await employeeService.setSelectedEmployeeById(id);
+    navigate(`/employee/${id}`);
+  };
 
   return (
     <div className={classes.root}>
@@ -53,7 +73,7 @@ const EmployeeList: React.FC = () => {
               <Employee
                 key={employee.id}
                 employee={employee}
-                onSelectEmployee={onSelectEmployee}
+                onSelectEmployee={handleSelectEmployee}
               />
             ))}
           </TableBody>

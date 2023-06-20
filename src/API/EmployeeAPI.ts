@@ -19,7 +19,7 @@ export const EmployeeAPI = {
   updateEmployee: async (employee: IEmployee): Promise<void> => {
     await axios.put(`${BASE_URL}/employee/${employee.id}`, employee);
   },
-  deleteEmployee: async (id: number): Promise<void> => {
+  deleteEmployee: async (id: string): Promise<void> => {
     await axios.delete(`${BASE_URL}/employee/${id}`);
   },
 };

@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 type Props = {
   employee: IEmployee;
-  onSelectEmployee: (id: number) => void;
+  onSelectEmployee: (id: string) => void;
 };
 
 const Employee: React.FC<Props> = ({ employee, onSelectEmployee }) => {

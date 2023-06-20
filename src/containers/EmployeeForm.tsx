@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   TextField,
   Button,
@@ -8,42 +8,48 @@ import {
 } from "@material-ui/core";
 import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
 import * as Yup from "yup";
-import { IAddress } from "../types/interfaces";
-import { useParams } from "react-router-dom";
-import { EmployeeContext } from "../context/EmployeeContext";
+import { IAddress, IEmployee } from "../types/interfaces";
+import { useNavigate, useParams } from "react-router-dom";
 import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
-import { EmployeeAPI } from "../API/EmployeeAPI";
 import { useStyles } from "../styles/styles";
 import Address from "../components/Address";
+import employeeService from "../services/EmployeeService";
+import { tap } from "rxjs";
 
 const EmployeeForm: React.FC = () => {
-  const {
-    handleCreateEmployee,
-    handleUnselectEmployee,
-    handleDeleteEmployee,
-    handleUpdateEmployee,
-    employees,
-    selectedEmployee,
-    setSelectedEmployee,
-  } = useContext(EmployeeContext);
-  const emails = employees.map((employee) => employee.email);
-  const classes = useStyles();
-
-  const { id } = useParams();
-
-  useEffect(() => {
-    const fetchEmployee = async () => {
-      const employee = await EmployeeAPI.getOneEmployee(id!);
-      setSelectedEmployee(employee || null);
-    };
-
-    if (!selectedEmployee && id) {
-      fetchEmployee();
-    }
-  }, [id, selectedEmployee, setSelectedEmployee]);
-
+  const [employee, setEmployee] = useState<IEmployee | null>(null);
+  const [emails, setEmails] = useState<string[]>([]);
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
+
+  const isUpdating = useMemo(() => {
+    return employee && employee.firstName !== '' && employee.id !== '';
+  }, [employee]);
+
+  const classes = useStyles();
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const employeeSubscription = employeeService.selectedEmployee$
+      .pipe(
+        tap((employee) => {
+          if (!employee && id) employeeService.setSelectedEmployeeById(id);
+        })
+      )
+      .subscribe((employee) => {
+        setEmployee(employee);
+      });
+
+    const emailSubscription = employeeService.emails$.subscribe((emails) => {
+      setEmails(emails);
+    });
+
+    return () => {
+      employeeSubscription.unsubscribe();
+      emailSubscription.unsubscribe();
+    };
+  }, [id, employee]);
 
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required("First Name is required"),
@@ -53,7 +59,7 @@ const EmployeeForm: React.FC = () => {
       .required("Email is required")
       .test("email-exists", "Email already exists", function (value) {
         const isEmailExists = emails.some(
-          (email) => email === value && email !== selectedEmployee?.email
+          (email) => email === value && email !== employee?.email
         );
         return !isEmailExists;
       }),
@@ -79,6 +85,26 @@ const EmployeeForm: React.FC = () => {
     setIsDeleteConfirmationOpen(true);
   };
 
+  const handleCreateEmployee = async (newEmployee: IEmployee) => {
+    await employeeService.createEmployee(newEmployee);
+    navigate("/");
+  };
+
+  const handleUpdateEmployee = async (updatedEmployee: IEmployee) => {
+    await employeeService.updateEmployee(updatedEmployee);
+    navigate("/");
+  };
+
+  const handleDeleteEmployee = async (id: string) => {
+    await employeeService.deleteEmployee(id!);
+    navigate("/");
+  };
+
+  const handleUnselectEmployee = () => {
+    setEmployee(null);
+    navigate("/");
+  };
+
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
@@ -87,7 +113,7 @@ const EmployeeForm: React.FC = () => {
       <Formik
         enableReinitialize
         initialValues={
-          selectedEmployee || {
+          employee || {
             firstName: "",
             lastName: "",
             email: "",
@@ -184,7 +210,7 @@ const EmployeeForm: React.FC = () => {
                 )}
               </FieldArray>
               <Grid item xs={12}>
-                {selectedEmployee !== null ? (
+                {isUpdating ? (
                   <>
                     <Button
                       type="submit"
@@ -212,9 +238,7 @@ const EmployeeForm: React.FC = () => {
                     <DeleteEmployeeConfirmation
                       isOpen={isDeleteConfirmationOpen}
                       onClose={handleDeleteConfirmationClose}
-                      onConfirm={() =>
-                        handleDeleteEmployee(selectedEmployee!.id!)
-                      }
+                      onConfirm={() => handleDeleteEmployee(employee!.id!)}
                     />
                   </>
                 ) : (
