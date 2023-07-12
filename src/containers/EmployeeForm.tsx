@@ -6,15 +6,16 @@ import {
   Typography,
   Grid,
 } from "@material-ui/core";
-import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
-import * as Yup from "yup";
 import { IAddress, IEmployee } from "../types/interfaces";
 import { useNavigate, useParams } from "react-router-dom";
 import DeleteEmployeeConfirmation from "../components/DeleteEmployeeConfirmation";
 import { useStyles } from "../styles/styles";
 import Address from "../components/Address";
 import employeeService from "../services/EmployeeService";
-import { tap } from "rxjs";
+import { combineLatest, tap } from "rxjs";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 const EmployeeForm: React.FC = () => {
   const [employee, setEmployee] = useState<IEmployee | null>(null);
@@ -23,7 +24,7 @@ const EmployeeForm: React.FC = () => {
     useState(false);
 
   const isUpdating = useMemo(() => {
-    return employee && employee.firstName !== '' && employee.id !== '';
+    return employee && employee.firstName !== "" && employee.id !== "";
   }, [employee]);
 
   const classes = useStyles();
@@ -31,60 +32,118 @@ const EmployeeForm: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const employeeSubscription = employeeService.selectedEmployee$
+    const combinedSubscription = combineLatest([
+      employeeService.selectedEmployee$,
+      employeeService.emails$,
+    ])
       .pipe(
-        tap((employee) => {
+        tap(([employee, emails]) => {
           if (!employee && id) employeeService.setSelectedEmployeeById(id);
+          setEmployee(employee);
+          setEmails(emails);
         })
       )
-      .subscribe((employee) => {
-        setEmployee(employee);
-      });
-
-    const emailSubscription = employeeService.emails$.subscribe((emails) => {
-      setEmails(emails);
-    });
+      .subscribe();
 
     return () => {
-      employeeSubscription.unsubscribe();
-      emailSubscription.unsubscribe();
+      combinedSubscription.unsubscribe();
     };
-  }, [id, employee]);
+  }, [id]);
 
-  const validationSchema = useMemo(() => Yup.object().shape({
-    firstName: Yup.string().required("First Name is required"),
-    lastName: Yup.string().required("Last Name is required"),
-    email: Yup.string()
-      .email("Invalid email format")
-      .required("Email is required")
-      .test("email-exists", "Email already exists", function (value) {
-        const isEmailExists = emails.some(
-          (email) => email === value && email !== employee?.email
-        );
-        return !isEmailExists;
-      }),
-    phoneNumber: Yup.string().required("Phone Number is required"),
-    addresses: Yup.array().of(
-      Yup.object().shape({
-        streetName: Yup.string().required("Street Name is required"),
-        postalCode: Yup.string().required("Postal Code is required"),
-        apartmentNumber: Yup.number()
-          .typeError("Apartment Number must be a number")
-          .required("Apartment Number is required"),
-        state: Yup.string().required("State is required"),
-        country: Yup.string().required("Country is required"),
-      })
-    ),
-  }),[emails, employee?.email]);
+  const validationSchema = useMemo(
+    () =>
+      yup.object().shape({
+        firstName: yup.string().required("First Name is required"),
+        lastName: yup.string().required("Last Name is required"),
+        email: yup
+          .string()
+          .email("Invalid email format")
+          .required("Email is required")
+          .test("email-exists", "Email already exists", function (value) {
+            const isEmailExists = emails.some(
+              (email) => email === value && email !== employee?.email
+            );
+            return !isEmailExists;
+          }),
+        phoneNumber: yup.string().required("Phone Number is required"),
+        addresses: yup.array().of(
+          yup.object().shape({
+            streetName: yup.string().required("Street Name is required"),
+            postalCode: yup.string().required("Postal Code is required"),
+            apartmentNumber: yup
+              .number()
+              .typeError("Apartment Number must be a number")
+              .required("Apartment Number is required"),
+            state: yup.string().required("State is required"),
+            country: yup.string().required("Country is required"),
+          })
+        ),
+      }) as yup.ObjectSchema<IEmployee>,
+    [emails, employee?.email]
+  );
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+    setValue,
+  } = useForm<IEmployee>({
+    resolver: yupResolver(validationSchema),
+    defaultValues: isUpdating
+      ? {
+          id: employee?.id || "",
+          firstName: employee?.firstName || "",
+          lastName: employee?.lastName || "",
+          email: employee?.email || "",
+          phoneNumber: employee?.phoneNumber || "",
+        }
+      : {
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNumber: "",
+        },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "addresses",
+  });
+
+  useEffect(() => {
+    if (employee) {
+      if (isUpdating) {
+        setValue("id", employee.id || "");
+      }
+      // Set form fields based on employee
+      setValue("firstName", employee.firstName || "");
+      setValue("lastName", employee.lastName || "");
+      setValue("email", employee.email || "");
+      setValue("phoneNumber", employee.phoneNumber || "");
+
+      // Clear existing address fields
+      remove();
+
+      // Add new address fields based on employee addresses
+      if (employee.addresses) {
+        employee.addresses.forEach((address) => {
+          append(address);
+        });
+      }
+    } else {
+      // Clear the form when employee is null
+      reset();
+    }
+  }, [employee, setValue, remove, append, reset, isUpdating]);
 
   const handleDeleteConfirmationClose = useCallback(() => {
     setIsDeleteConfirmationOpen(false);
   }, []);
-  
+
   const handleDeleteConfirmationOpen = useCallback(() => {
     setIsDeleteConfirmationOpen(true);
   }, []);
-  
 
   const handleCreateEmployee = async (newEmployee: IEmployee) => {
     await employeeService.createEmployee(newEmployee);
@@ -106,167 +165,175 @@ const EmployeeForm: React.FC = () => {
     navigate("/");
   };
 
+  const onSubmit = handleSubmit(async (data) => {
+    if (isUpdating) {
+      handleUpdateEmployee(data);
+    } else {
+      handleCreateEmployee(data);
+    }
+  });
+
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
         Add New Employee
       </Typography>
-      <Formik
-        enableReinitialize
-        initialValues={
-          employee || {
-            firstName: "",
-            lastName: "",
-            email: "",
-            phoneNumber: "",
-            addresses: [
-              {
-                streetName: "",
-                postalCode: "",
-                apartmentNumber: 0,
-                state: "",
-                country: "",
-              },
-            ],
-          }
-        }
-        validationSchema={validationSchema}
-        onSubmit={(values) => {
-          if (id) {
-            handleUpdateEmployee(values);
-          } else {
-            handleCreateEmployee(values);
-          }
-        }}
-      >
-        {(formik) => (
-          <Form className={classes.form}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  name="firstName"
+      <form onSubmit={onSubmit}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Controller
+              control={control}
+              name="firstName"
+              render={({ field }) => (
+                <TextField
+                  {...field}
                   label="First Name"
                   variant="outlined"
                   fullWidth
+                  name="firstName"
                 />
-                <ErrorMessage name="firstName" component="div" />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  name="lastName"
+              )}
+            />
+            {errors.firstName && (
+              <Typography color="error">{errors.firstName.message}</Typography>
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Controller
+              control={control}
+              name="lastName"
+              render={({ field }) => (
+                <TextField
+                  {...field}
                   label="Last Name"
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="lastName" component="div" />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  name="email"
+              )}
+            />
+            {errors.lastName && (
+              <Typography color="error">{errors.lastName.message}</Typography>
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <TextField
+                  {...field}
                   label="Email Address"
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="email" component="div" />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  name="phoneNumber"
+              )}
+            />
+            {errors.email && (
+              <Typography color="error">{errors.email.message}</Typography>
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Controller
+              control={control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <TextField
+                  {...field}
                   label="Phone Number"
                   variant="outlined"
                   fullWidth
                 />
-                <ErrorMessage name="phoneNumber" component="div" />
-              </Grid>
-              <FieldArray name="addresses">
-                {({ push, remove }) => (
-                  <div>
-                    {formik.values.addresses.map(
-                      (address: IAddress, index: number) => (
-                        <Address key={index} index={index} remove={remove} />
-                      )
-                    )}
-                    <Button
-                      className={classes.button}
-                      type="button"
-                      variant="outlined"
-                      color="primary"
-                      onClick={() =>
-                        push({
-                          streetName: "",
-                          postalCode: "",
-                          apartmentNumber: 0,
-                          state: "",
-                          country: "",
-                        })
-                      }
-                    >
-                      Add Address
-                    </Button>
-                  </div>
-                )}
-              </FieldArray>
-              <Grid item xs={12}>
-                {isUpdating ? (
-                  <>
-                    <Button
-                      type="submit"
-                      className={classes.button}
-                      variant="outlined"
-                      color="primary"
-                    >
-                      Update
-                    </Button>
-                    <Button
-                      className={classes.button}
-                      variant="outlined"
-                      onClick={handleUnselectEmployee}
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      className={classes.button}
-                      variant="outlined"
-                      color="secondary"
-                      onClick={handleDeleteConfirmationOpen}
-                    >
-                      Delete
-                    </Button>
-                    <DeleteEmployeeConfirmation
-                      isOpen={isDeleteConfirmationOpen}
-                      onClose={handleDeleteConfirmationClose}
-                      onConfirm={() => handleDeleteEmployee(employee!.id!)}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      disabled={!formik.dirty || !formik.isValid}
-                      className={classes.button}
-                    >
-                      Create
-                    </Button>
-                    <Button
-                      className={classes.button}
-                      variant="outlined"
-                      onClick={handleUnselectEmployee}
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                )}
-              </Grid>
-            </Grid>
-          </Form>
-        )}
-      </Formik>
+              )}
+            />
+            {errors.phoneNumber && (
+              <Typography color="error">
+                {errors.phoneNumber.message}
+              </Typography>
+            )}
+          </Grid>
+          <div>
+            {fields.map((address: IAddress, index: number) => (
+              <Address
+                key={index}
+                index={index}
+                remove={() => remove(index)}
+                control={control}
+                errors={errors}
+              />
+            ))}
+            <Button
+              className={classes.button}
+              type="button"
+              variant="outlined"
+              color="primary"
+              onClick={() =>
+                append({
+                  streetName: "",
+                  postalCode: "",
+                  apartmentNumber: 0,
+                  state: "",
+                  country: "",
+                })
+              }
+            >
+              Add Address
+            </Button>
+          </div>
+          <Grid item xs={12}>
+            {isUpdating ? (
+              <>
+                <Button
+                  type="submit"
+                  className={classes.button}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Update
+                </Button>
+                <Button
+                  className={classes.button}
+                  variant="outlined"
+                  onClick={handleUnselectEmployee}
+                >
+                  Back
+                </Button>
+                <Button
+                  className={classes.button}
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleDeleteConfirmationOpen}
+                >
+                  Delete
+                </Button>
+                <DeleteEmployeeConfirmation
+                  isOpen={isDeleteConfirmationOpen}
+                  onClose={handleDeleteConfirmationClose}
+                  onConfirm={() => handleDeleteEmployee(employee!.id!)}
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  className={classes.button}
+                  disabled={!isValid}
+                >
+                  Create
+                </Button>
+                <Button
+                  className={classes.button}
+                  variant="outlined"
+                  onClick={handleUnselectEmployee}
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
+          </Grid>
+        </Grid>
+      </form>
     </Container>
   );
 };
