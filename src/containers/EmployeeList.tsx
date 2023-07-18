@@ -34,21 +34,29 @@ const useStyles = makeStyles((theme: Theme) =>
 const EmployeeList: React.FC = () => {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
 
+  const classes = useStyles();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const subscription = employeeService.employees$.subscribe(
+    const employeeSubscription = employeeService.employees$.subscribe(
       (updatedEmployees) => {
-        setEmployees(updatedEmployees);
+        if (updatedEmployees.length > 0) setEmployees(updatedEmployees);
       }
     );
+
+    const errorSubscription = employeeService.errorMessage$.subscribe(
+      (error) => {
+        if (error) navigate("/error");
+      }
+    );
+
     employeeService.initializeEmployees();
 
     return () => {
-      subscription.unsubscribe();
+      employeeSubscription.unsubscribe();
+      errorSubscription.unsubscribe();
     };
-  }, []);
-
-  const classes = useStyles();
-  const navigate = useNavigate();
+  }, [navigate]);
 
   const handleSelectEmployee = useCallback(
     async (id: string) => {

@@ -9,20 +9,13 @@ const Navbar: React.FC = () => {
 
   const handleAddEmployeeClicked = () => {
     employeeService.setSelectedEmployee({
-            firstName: "",
-            lastName: "",
-            email: "",
-            phoneNumber: "",
-            addresses: [
-              {
-                streetName: "",
-                postalCode: "",
-                apartmentNumber: 0,
-                state: "",
-                country: "",
-              },
-            ],
-          });
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNumber: "",
+      addresses: [],
+    });
+    employeeService.setErrorMessage(null);
     navigate("/add");
   };
 
@@ -31,7 +24,10 @@ const Navbar: React.FC = () => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6">Employee Manager</Typography>
-        <Button className={classes.buttonNavbar} onClick={handleAddEmployeeClicked} >
+        <Button
+          className={classes.buttonNavbar}
+          onClick={handleAddEmployeeClicked}
+        >
           Add Employee
         </Button>
       </Toolbar>

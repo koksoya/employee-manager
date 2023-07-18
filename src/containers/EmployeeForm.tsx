@@ -35,10 +35,17 @@ const EmployeeForm: React.FC = () => {
     const combinedSubscription = combineLatest([
       employeeService.selectedEmployee$,
       employeeService.emails$,
+      employeeService.errorMessage$,
     ])
       .pipe(
-        tap(([employee, emails]) => {
-          if (!employee && id) employeeService.setSelectedEmployeeById(id);
+        tap(([employee, emails, errorMessage]) => {
+          if (!employee && id && !errorMessage) {
+            employeeService.setSelectedEmployeeById(id);
+          }
+          if (errorMessage) {
+            navigate("/Error");
+          }
+
           setEmployee(employee);
           setEmails(emails);
         })
@@ -48,7 +55,7 @@ const EmployeeForm: React.FC = () => {
     return () => {
       combinedSubscription.unsubscribe();
     };
-  }, [id]);
+  }, [id, navigate]);
 
   const validationSchema = useMemo(
     () =>
@@ -85,7 +92,7 @@ const EmployeeForm: React.FC = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
     setValue,
   } = useForm<IEmployee>({
@@ -135,7 +142,7 @@ const EmployeeForm: React.FC = () => {
       // Clear the form when employee is null
       reset();
     }
-  }, [employee, setValue, remove, append, reset, isUpdating]);
+  }, [isUpdating,append, employee, remove, reset, setValue]);
 
   const handleDeleteConfirmationClose = useCallback(() => {
     setIsDeleteConfirmationOpen(false);
@@ -176,7 +183,7 @@ const EmployeeForm: React.FC = () => {
   return (
     <Container component="main" maxWidth="md" className={classes.root}>
       <Typography component="h1" variant="h5">
-        Add New Employee
+        {isUpdating ? "Update Employee" : "Add New Employee"}
       </Typography>
       <form onSubmit={onSubmit}>
         <Grid container spacing={2}>
@@ -318,7 +325,6 @@ const EmployeeForm: React.FC = () => {
                   variant="contained"
                   color="primary"
                   className={classes.button}
-                  disabled={!isValid}
                 >
                   Create
                 </Button>

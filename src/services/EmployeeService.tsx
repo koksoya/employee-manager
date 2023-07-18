@@ -8,11 +8,13 @@ export class EmployeeService {
     null
   );
   private emailsSubject$ = new BehaviorSubject<string[]>([]);
+  private errorMessageSubject$ = new BehaviorSubject<string | null>(null);
 
   public readonly employees$ = this.employeesSubject$.asObservable();
   public readonly selectedEmployee$ =
     this.selectedEmployeeSubject$.asObservable();
   public readonly emails$ = this.emailsSubject$.asObservable();
+  public readonly errorMessage$ = this.errorMessageSubject$.asObservable();
 
   get employees(): IEmployee[] {
     return this.employeesSubject$.getValue();
@@ -38,31 +40,69 @@ export class EmployeeService {
     this.emailsSubject$.next(value);
   }
 
+  get errorMessage(): string | null {
+    return this.errorMessageSubject$.getValue();
+  }
+
+  set errorMessage(value: string | null) {
+    this.errorMessageSubject$.next(value);
+  }
+
+  setErrorMessage(message: string | null): void {
+    this.errorMessage = message;
+  }
+
   setSelectedEmployee(employee: IEmployee | null): void {
     this.selectedEmployee = employee;
   }
 
   async initializeEmployees(): Promise<void> {
-    const employees = await EmployeeAPI.getAllEmployees();
-    this.employees = employees;
-    this.emails = employees.map((employee) => employee.email);
+    try {
+      const employees = await EmployeeAPI.getAllEmployees();
+      this.employees = employees;
+      this.emails = employees.map((employee) => employee.email);
+    } catch (error) {
+      this.errorMessage = "Could not load employees";
+    }
   }
 
   async setSelectedEmployeeById(id: string): Promise<void> {
-    const data = await EmployeeAPI.getOneEmployee(id);
-    this.selectedEmployee = data;
+    try {
+      const data = await EmployeeAPI.getOneEmployee(id);
+      this.selectedEmployee = data;
+      this.errorMessage = null; // Clear the error message if the employee is found
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        this.selectedEmployee = null; // Set selectedEmployee to null if the employee is not found
+        this.errorMessage = "Could not find employee";
+      } else {
+        this.errorMessage = "Failed to fetch employee";
+      }
+    }
   }
 
   async createEmployee(employee: IEmployee): Promise<void> {
-    await EmployeeAPI.createEmployee(employee);
+    try {
+      await EmployeeAPI.createEmployee(employee);
+    } catch (error) {
+      this.errorMessage = "Could not create employee";
+    }
   }
 
   async updateEmployee(employee: IEmployee): Promise<void> {
-    await EmployeeAPI.updateEmployee(employee);
+    try {
+      await EmployeeAPI.updateEmployee(employee);
+    } catch (error) {
+      this.errorMessage = "Could not update employee";
+    }
   }
 
   async deleteEmployee(id: string): Promise<void> {
-    await EmployeeAPI.deleteEmployee(id);
+    try {
+      await EmployeeAPI.deleteEmployee(id);
+    } catch (error) {
+      this.errorMessage = "Could not delete employee";
+    }
   }
 }
 
